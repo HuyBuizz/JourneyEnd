@@ -24,14 +24,16 @@ public class MissionManager : MonoBehaviour
 
         if (sceneName == "Level1")
         {
-            chain.steps.Add(new MissionStep {
+            chain.steps.Add(new MissionStep
+            {
                 id = "talk_npc",
                 description = "Nói chuyện với NPC để nhận nhiệm vụ",
                 type = MissionStepType.TalkToNPC,
-                targetNPC = GameObject.Find("NPC_Captain")
+                targetNPC = GameObject.Find("NPC_Captain"),
             });
 
-            chain.steps.Add(new MissionStep {
+            chain.steps.Add(new MissionStep
+            {
                 id = "go_to_location",
                 description = "Đi đến khu vực hiện trường (FireZone)",
                 type = MissionStepType.ReachLocation,

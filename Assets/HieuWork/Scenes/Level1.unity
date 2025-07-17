@@ -389,6 +389,8 @@ GameObject:
   - component: {fileID: 586768957}
   - component: {fileID: 586768960}
   - component: {fileID: 586768961}
+  - component: {fileID: 586768962}
+  - component: {fileID: 586768963}
   m_Layer: 0
   m_Name: FireZone
   m_TagString: Untagged
@@ -498,6 +500,36 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.0000001, y: 157.97, z: 1.0000002}
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!114 &586768962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586768954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &586768963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586768954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac4a8c9c19106a249b8b292df823667d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &623539771 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
@@ -1042,6 +1074,8 @@ GameObject:
   - component: {fileID: 1352704531}
   - component: {fileID: 1352704530}
   - component: {fileID: 1352704534}
+  - component: {fileID: 1352704535}
+  - component: {fileID: 1352704536}
   m_Layer: 0
   m_Name: NPC_Captain
   m_TagString: Untagged
@@ -1151,6 +1185,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   triggerType: 0
+--- !u!114 &1352704535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352704529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+--- !u!114 &1352704536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352704529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac4a8c9c19106a249b8b292df823667d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1793713685
 GameObject:
   m_ObjectHideFlags: 0
