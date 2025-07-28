@@ -6,13 +6,13 @@ public class PlayerInventorySystem : MonoBehaviour
     [SerializeField]
     GameObject playerInventory;
     [SerializeField]
-    List<GameObject> inventory;
+    List<GameObject> playerItems;
     [SerializeField]
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         playerInventory = GameObject.Find("PlayerCameraRoot/Inventory");
-        inventory = new List<GameObject>();
+        playerItems = new List<GameObject>();
     }
 
     // Update is called once per frame
@@ -23,9 +23,9 @@ public class PlayerInventorySystem : MonoBehaviour
 
     public void AddToInventory(GameObject item)
     {
-        if (item != null && !inventory.Contains(item))
+        if (item != null && !playerItems.Contains(item))
         {
-            inventory.Add(item);
+            playerItems.Add(item);
             Debug.Log("Added to inventory: " + item.name);
         }
         else
@@ -42,14 +42,14 @@ public class PlayerInventorySystem : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha0 + i))
             {
                 int index = i - 1;
-                if (index < inventory.Count && inventory[index] != null)
+                if (index < playerItems.Count && playerItems[index] != null)
                 {
                     // Nếu đang equip item này thì ấn lại sẽ tắt nó đi
-                    if (playerState.onHoldingItem == inventory[index] && inventory[index].activeSelf)
+                    if (playerState.onHoldingItem == playerItems[index] && playerItems[index].activeSelf)
                     {
-                        inventory[index].SetActive(false);
+                        playerItems[index].SetActive(false);
                         playerState.onHoldingItem = null;
-                        Debug.Log($"Unequipped item slot {i}: {inventory[index].name}");
+                        Debug.Log($"Unequipped item slot {i}: {playerItems[index].name}");
                     }
                     else
                     {
@@ -59,9 +59,9 @@ public class PlayerInventorySystem : MonoBehaviour
                             transform.gameObject.SetActive(false);
                         }
                         // Hiện item được chọn
-                        inventory[index].SetActive(true);
-                        playerState.onHoldingItem = inventory[index];
-                        Debug.Log($"Equipped item slot {i}: {inventory[index].name}");
+                        playerItems[index].SetActive(true);
+                        playerState.onHoldingItem = playerItems[index];
+                        Debug.Log($"Equipped item slot {i}: {playerItems[index].name}");
                     }
                 }
                 else

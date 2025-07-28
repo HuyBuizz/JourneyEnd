@@ -5,8 +5,6 @@ public class PlayerState : MonoBehaviour
     [SerializeField]
     GameObject playerObject;
     [SerializeField]
-    public GameObject onHoldingObj;
-    [SerializeField]
     public GameObject onHoldingItem;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

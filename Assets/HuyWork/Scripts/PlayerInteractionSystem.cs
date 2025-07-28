@@ -75,11 +75,12 @@ public class PlayerInteractionSystem : MonoBehaviour
             }
             switch (interactableObject.GetComponent<Interactable>().interactableType)
             {
-                case Interactable.InteractableType.Pickup:
-                    this.GetComponent<PlayerAction>().Pickup(interactableObject);
-                    break;
-                case Interactable.InteractableType.Take:
+                case Interactable.InteractableType.Takeable:
                     this.GetComponent<PlayerAction>().Take(interactableObject);
+                    break;
+                case Interactable.InteractableType.Storage:
+                    // this.GetComponent<PlayerAction>().OpenStorage(interactableObject);
+                    this.GetComponent<PlayerAction>().StoreItem(interactableObject);
                     break;
                 default:
                     Debug.Log("Interactable type not handled: " + interactableObject.GetComponent<Interactable>().interactableType);
