@@ -68,36 +68,57 @@ public class PlayerAction : MonoBehaviour
 
     public void Take(GameObject interactableObject)
     {
+        if (interactableObject == null) return;
+
+        // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ tham chiếu
         if (playerState.onHoldingItem != null)
         {
             playerState.onHoldingItem.SetActive(false);
             playerState.onHoldingItem = null;
         }
 
+        // Cập nhật vật phẩm đang cầm
         playerState.onHoldingItem = interactableObject;
-        GetComponent<PlayerInventorySystem>().AddToInventory(interactableObject);
-        Rigidbody rb = interactableObject.GetComponent<Rigidbody>();
+
+        // Thêm vào kho đồ
+        var inventory = GetComponent<PlayerInventorySystem>();
+        if (inventory != null)
+        {
+            inventory.AddToPlayerInventory(interactableObject);
+        }
+
+        // Thiết lập Rigidbody nếu có
+        var rb = interactableObject.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.isKinematic = true;
         }
-        interactableObject.transform.SetParent(transform.Find("PlayerCameraRoot/Inventory"));
-        interactableObject.transform.localPosition = new Vector3(0.3f, -0.2f, 1);
-        interactableObject.transform.localScale = Vector3.one / 5;
+
+        // Đặt lại vị trí, tỉ lệ, cha
+        SetItemToInventorySlot(interactableObject);
+        interactableObject.SetActive(true);
     }
 
+    // Đặt vật phẩm vào kho đồ cá nhân
+    private void SetItemToInventorySlot(GameObject item)
+    {
+        var inventoryRoot = transform.Find("PlayerCameraRoot/Inventory");
+        if (inventoryRoot != null)
+        {
+            item.transform.SetParent(inventoryRoot);
+            item.transform.localPosition = new Vector3(0.3f, -0.2f, 1);
+            item.transform.localScale = Vector3.one / 5;
+        }
+    }
+    // Cất item vào kho khác
     public void StoreItem(GameObject interactableObject)
     {
         if (playerState.onHoldingItem == null) return;
         if (interactableObject == null) return;
-        Debug.Log("Storing item: " + playerState.onHoldingItem.name + " into storage: " + interactableObject.name);
         Storage storage = interactableObject.GetComponent<Storage>();
         if (storage != null)
         {
-            storage.AddItem(playerState.onHoldingItem);
-            playerState.onHoldingItem.transform.SetParent(interactableObject.transform.Find("Inventory"));
-            playerState.onHoldingItem.transform.localPosition = Vector3.zero;
-            playerState.onHoldingItem.transform.localScale = Vector3.one;
+            storage.TransferItemToStorage(playerState.onHoldingItem, this.gameObject);
             playerState.onHoldingItem = null;
         }
     }

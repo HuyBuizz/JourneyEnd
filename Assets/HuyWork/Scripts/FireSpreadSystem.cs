@@ -58,7 +58,6 @@ public class FireSpreadSystem : MonoBehaviour
                         float randY = Random.Range(childPointHeightMin, childPointHeightMax);
                         Vector3 childPos = fatherPos + new Vector3(randX, randY, randZ);
                         Instantiate(point, childPos, Quaternion.identity, father.transform.Find("PointContainer"));
-                        point.SetActive(false);
                     }
                 }
             }

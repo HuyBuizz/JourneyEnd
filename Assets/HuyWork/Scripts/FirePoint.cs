@@ -25,7 +25,10 @@ public class FirePoint : MonoBehaviour
 
         foreach (Transform point in transform.Find("PointContainer"))
         {
-            point.gameObject.SetActive(playerFound);
+            foreach (Transform model in point.Find("Model"))
+            {
+                model.gameObject.SetActive(playerFound);
+            }
         }
     }
 }

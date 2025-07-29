@@ -4,33 +4,45 @@ using UnityEngine;
 public class PlayerInventorySystem : MonoBehaviour
 {
     [SerializeField]
-    GameObject playerInventory;
+    Transform playerInventoryRoot;
     [SerializeField]
     List<GameObject> playerItems;
     [SerializeField]
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        playerInventory = GameObject.Find("PlayerCameraRoot/Inventory");
-        playerItems = new List<GameObject>();
+        playerInventoryRoot = transform.Find("PlayerCameraRoot/Inventory");
+        if (playerInventoryRoot == null)
+        {
+            Debug.LogError("PlayerInventory root not found!");
+            return;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         ChangeEquippedItem();
+        LocalInventoryItemListUpdate(playerInventoryRoot, playerItems);
     }
 
-    public void AddToInventory(GameObject item)
+    void LocalInventoryItemListUpdate(Transform inventoryRoot, List<GameObject> itemList)
+    {
+        if (inventoryRoot != null)
+        {
+            itemList = new List<GameObject>();
+            foreach (Transform child in inventoryRoot.transform)
+            {
+                itemList.Add(child.gameObject);
+            }
+        }
+    }
+
+    public void AddToPlayerInventory(GameObject item)
     {
         if (item != null && !playerItems.Contains(item))
         {
             playerItems.Add(item);
-            Debug.Log("Added to inventory: " + item.name);
-        }
-        else
-        {
-            Debug.LogWarning("Item is null or already in inventory: " + item);
         }
     }
 
@@ -49,24 +61,18 @@ public class PlayerInventorySystem : MonoBehaviour
                     {
                         playerItems[index].SetActive(false);
                         playerState.onHoldingItem = null;
-                        Debug.Log($"Unequipped item slot {i}: {playerItems[index].name}");
                     }
                     else
                     {
                         // Tắt tất cả item trong inventory
-                        foreach (Transform transform in playerInventory.transform)
+                        foreach (Transform transform in playerInventoryRoot.transform)
                         {
                             transform.gameObject.SetActive(false);
                         }
                         // Hiện item được chọn
                         playerItems[index].SetActive(true);
                         playerState.onHoldingItem = playerItems[index];
-                        Debug.Log($"Equipped item slot {i}: {playerItems[index].name}");
                     }
-                }
-                else
-                {
-                    Debug.LogWarning($"No item in slot {i}");
                 }
             }
         }
