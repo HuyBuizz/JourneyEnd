@@ -22,6 +22,7 @@ public class FirePoint : MonoBehaviour
 
     void Update()
     {
+        FatherPointActiveWhenPlayerInRange();
         ChildPointActiveWhenPlayerInRange();
         DetectSurroundingPoints();
         EffectHandler();
@@ -32,17 +33,23 @@ public class FirePoint : MonoBehaviour
         pointContainer = transform.Find("PointContainer");
         if (pointContainer == null)
         {
-            Debug.LogError("PointContainer not found in FirePoint.");
+            Debug.LogError("PointContainer not found.");
             return;
         }
 
         effect = transform.Find("Effect");
         if (effect == null)
         {
-            Debug.LogError("Effect not found in PointContainer.");
+            Debug.LogError("Effect not found.");
             return;
         }
 
+        model = transform.Find("Model");
+        if (model == null)
+        {
+            Debug.LogError("Model not found.");
+            return;
+        }
     }
 
     void ChildPointActiveWhenPlayerInRange()
@@ -70,6 +77,36 @@ public class FirePoint : MonoBehaviour
             {
                 model.gameObject.SetActive(playerFound);
             }
+        }
+    }
+
+    void FatherPointActiveWhenPlayerInRange()
+    {
+        bool playerFound = false;
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, distanceToActive);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Player"))
+            {
+                playerFound = true;
+                break;
+            }
+        }
+
+        if (model == null)
+        {
+            Debug.LogError("Model is null in FirePoint.");
+            return;
+        }
+
+        model.gameObject.SetActive(playerFound);
+        if (effect != null)
+        {
+            effect.gameObject.SetActive(playerFound);
+        }
+        else
+        {
+            Debug.LogWarning("Effect is null in FirePoint.");
         }
     }
 

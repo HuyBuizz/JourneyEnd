@@ -48,9 +48,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1902d00065c62469ecf5de2e7e6338, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointContainer: {fileID: 0}
-  model: {fileID: 0}
-  effect: {fileID: 0}
+  pointContainer: {fileID: 9019744685995271988}
+  model: {fileID: 3610511914744939981}
+  effect: {fileID: 6069503234840819859}
   distanceToActive: 5
   detectRadius: 3
   maxHealth: 100
@@ -122,7 +122,6 @@ GameObject:
   - component: {fileID: 5227267211185537313}
   - component: {fileID: 6676444931082192971}
   - component: {fileID: 24660114197618396}
-  - component: {fileID: 2730558934988484293}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -198,27 +197,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &2730558934988484293
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3180818050976615569}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3381482375908945925
 GameObject:
   m_ObjectHideFlags: 0
