@@ -45,11 +45,10 @@ public partial class FlamePointSpawnerSystem : SystemBase
                     ecb.SetComponent(flame, LocalTransform.FromPosition(spawnPos));
                     ecb.AddComponent(flame, new FlamePoints
                     {
-                        detectRadius = 1f,
+                        detectRadius = 5f,
                         maxHealth = 100f,
-                        currentHealth = 100f,
+                        currentHealth = 0f,
                         dps = 5f,
-                        pointContainer = Entity.Null,
                         model = Entity.Null,
                         effect = Entity.Null
                     });
