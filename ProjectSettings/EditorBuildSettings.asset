@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/HieuWork/Scenes/LoadingScreen/Loading.unity
     guid: 1eff1b21a1556194aa164b39f141c7ac
+  - enabled: 1
+    path: Assets/HieuWork/Scenes/Multiplay/Menu.unity
+    guid: 1b67984370e4f1543a7b16ddd2b9031c
+  - enabled: 1
+    path: Assets/HieuWork/Scenes/Multiplay/Game1.unity
+    guid: 8ef4b26ca56b17848a7d4e2b33352677
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
