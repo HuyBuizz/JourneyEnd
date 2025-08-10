@@ -24,3 +24,8 @@ public struct Spawner : IComponentData
 {
     public Entity prefab;
 }
+
+public struct ECube : IComponentData
+{
+    public bool isSmall;
+}

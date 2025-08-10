@@ -1,28 +1,43 @@
 using StarterAssets;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] Vector3 playerLookDirection;
+    // [SerializeField] Vector3 playerLookDirection;
     [SerializeField] GameObject playerCameraRoot;
     [SerializeField] GameObject crosshairObject;
-    /// <summary>
-    /// Player stats
-    /// </summary>
     public float health = 100f;
     public float stamina = 100f;
     public float reachRange = 5f;
 
+    public EntityManager entityManager;
+    public Entity playerPosEntity;
+
     void Start()
     {
         playerCameraRoot = this.gameObject.GetComponent<FirstPersonController>().CinemachineCameraTarget;
-        playerLookDirection = playerCameraRoot.transform.forward;
+        // playerLookDirection = playerCameraRoot.transform.forward;
+
+        // Khởi tạo entity singleton cho PlayerPosition
+        entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        var query = entityManager.CreateEntityQuery(typeof(PlayerPosition));
+        if (query.IsEmpty)
+            playerPosEntity = entityManager.CreateEntity(typeof(PlayerPosition));
+        else
+            playerPosEntity = query.GetSingletonEntity();
     }
 
-    // Update is called once per frame
     void Update()
     {
         PlaceCrosshair();
+
+        // Sync vị trí player vào DOTS mỗi frame
+        if (entityManager.Exists(playerPosEntity))
+        {
+            entityManager.SetComponentData(playerPosEntity, new PlayerPosition { Value = transform.position });
+        }
     }
 
     void PlaceCrosshair()
@@ -40,4 +55,9 @@ public class Player : MonoBehaviour
             }
         }
     }
+}
+
+public struct PlayerPosition : IComponentData
+{
+    public float3 Value;
 }
