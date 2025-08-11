@@ -5,13 +5,12 @@ using Unity.Mathematics;
 /// <summary>
 /// ComponentData lưu dữ liệu FlamePoint.
 /// </summary>
-public struct FlamePoints : IComponentData
+public struct FlamePoint : IComponentData
 {
     public float detectRadius;
     public float maxHealth;
     public float currentHealth;
     public float dps;
-    public Entity pointContainer;
     public Entity model;
     public Entity effect;
 }
@@ -21,11 +20,10 @@ public struct FlamePoints : IComponentData
 /// </summary>
 public class FlamePointAuthoring : MonoBehaviour
 {
-    public float detectRadius = 1f;
+    public float detectRadius = 2.5f;
     public float maxHealth = 100f;
-    public float currentHealth = 100f;
-    public float dps = 5f;
-    public GameObject pointContainer;
+    public float currentHealth = 0f;
+    public float dps = 10f;
     public GameObject model;
     public GameObject effect;
 
@@ -34,17 +32,22 @@ public class FlamePointAuthoring : MonoBehaviour
         public override void Bake(FlamePointAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(entity, new FlamePoints
+            AddComponent(entity, new FlamePoint
             {
                 detectRadius = authoring.detectRadius,
                 maxHealth = authoring.maxHealth,
                 currentHealth = authoring.currentHealth,
                 dps = authoring.dps,
-                pointContainer = authoring.pointContainer != null ? GetEntity(authoring.pointContainer, TransformUsageFlags.Dynamic) : Entity.Null,
                 model = authoring.model != null ? GetEntity(authoring.model, TransformUsageFlags.Dynamic) : Entity.Null,
                 effect = authoring.effect != null ? GetEntity(authoring.effect, TransformUsageFlags.Dynamic) : Entity.Null
             });
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, detectRadius);
     }
 }
 

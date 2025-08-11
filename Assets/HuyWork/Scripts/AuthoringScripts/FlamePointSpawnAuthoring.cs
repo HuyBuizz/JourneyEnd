@@ -11,9 +11,7 @@ public class FlamePointSpawnAuthoring : MonoBehaviour
     [Header("Spawn Settings")]
     public float margin = 1f;
     public float pointDensity = 0.2f;
-    public float childPointWidth = 2.5f;
-    public float childPointHeightMin = 0.0f;
-    public float childPointHeightMax = 0.0f;
+
 
     class FlamePointSpawnAuthoringBaker : Baker<FlamePointSpawnAuthoring>
     {
@@ -26,9 +24,6 @@ public class FlamePointSpawnAuthoring : MonoBehaviour
                 prefab = prefabEntity,
                 margin = authoring.margin,
                 pointDensity = authoring.pointDensity,
-                childPointWidth = authoring.childPointWidth,
-                childPointHeightMin = authoring.childPointHeightMin,
-                childPointHeightMax = authoring.childPointHeightMax
             });
         }
     }
@@ -42,8 +37,5 @@ public struct FlamePointSpawner : IComponentData
     public Entity prefab;
     public float margin;
     public float pointDensity;
-    public float childPointWidth;
-    public float childPointHeightMin;
-    public float childPointHeightMax;
 }
 

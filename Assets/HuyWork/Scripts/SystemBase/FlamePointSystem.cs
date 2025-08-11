@@ -12,14 +12,14 @@ public partial struct FlamePointSystem : ISystem
         var deltaTime = SystemAPI.Time.DeltaTime;
 
         // Query tất cả FlamePoint
-        foreach (var (flamePoint, transform, entity) in SystemAPI.Query<RefRW<FlamePoints>, RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (flamePoint, transform, entity) in SystemAPI.Query<RefRW<FlamePoint>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             // Detect các FlamePoint khác trong bán kính detectRadius
             var pos = transform.ValueRO.Position;
             var detectRadius = flamePoint.ValueRO.detectRadius;
 
             // Đơn giản: duyệt tất cả FlamePoint khác (có thể tối ưu spatial query sau)
-            foreach (var (otherFlame, otherTransform, otherEntity) in SystemAPI.Query<RefRW<FlamePoints>, RefRO<LocalTransform>>().WithEntityAccess())
+            foreach (var (otherFlame, otherTransform, otherEntity) in SystemAPI.Query<RefRW<FlamePoint>, RefRO<LocalTransform>>().WithEntityAccess())
             {
                 if (entity == otherEntity) continue;
                 float dist = math.distance(pos, otherTransform.ValueRO.Position);

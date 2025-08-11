@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4009876027105874127}
   - component: {fileID: -1787171253660521056}
+  - component: {fileID: -5341312621981945016}
   m_Layer: 7
   m_Name: FlamePointEntity
   m_TagString: Untagged
@@ -57,6 +58,24 @@ CapsuleCollider:
   m_Height: 0.1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-5341312621981945016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846300732987059666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b73afc5dae781e48b784e3a05e61243, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectRadius: 10
+  maxHealth: 100
+  currentHealth: 0
+  dps: 10
+  model: {fileID: 9172445615924430661}
+  effect: {fileID: 4282434615914638472}
 --- !u!1 &4282434615914638472
 GameObject:
   m_ObjectHideFlags: 0
