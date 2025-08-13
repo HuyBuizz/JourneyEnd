@@ -5,15 +5,19 @@ public class PlayerInteractionSystem : MonoBehaviour
 {
     [SerializeField]
     GameObject playerCameraRoot;
+
     [SerializeField]
     GameObject interactableObject;
 
-    [SerializeField] GameObject lastOutlinedObject;
+    [SerializeField]
+    GameObject lastOutlinedObject;
     float reachRange;
 
     void Start()
     {
-        playerCameraRoot = this.gameObject.GetComponent<FirstPersonController>().CinemachineCameraTarget;
+        playerCameraRoot = this
+            .gameObject.GetComponent<FirstPersonController>()
+            .CinemachineCameraTarget;
         reachRange = GetComponent<Player>().reachRange;
     }
 
@@ -27,7 +31,15 @@ public class PlayerInteractionSystem : MonoBehaviour
     void DetectInteractableObject()
     {
         RaycastHit hit;
-        if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, reachRange, LayerMask.GetMask("Interactable")))
+        if (
+            Physics.Raycast(
+                playerCameraRoot.transform.position,
+                playerCameraRoot.transform.forward,
+                out hit,
+                reachRange,
+                LayerMask.GetMask("Interactable")
+            )
+        )
         {
             interactableObject = hit.collider.gameObject;
         }
@@ -78,7 +90,10 @@ public class PlayerInteractionSystem : MonoBehaviour
                     this.GetComponent<PlayerAction>().StoreItem(interactableObject);
                     break;
                 default:
-                    Debug.Log("Interactable type not handled: " + interactableObject.GetComponent<Interactable>().interactableType);
+                    Debug.Log(
+                        "Interactable type not handled: "
+                            + interactableObject.GetComponent<Interactable>().interactableType
+                    );
                     break;
             }
         }

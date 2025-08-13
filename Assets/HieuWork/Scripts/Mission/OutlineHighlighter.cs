@@ -19,9 +19,16 @@ public class OutlineHighlighter : MonoBehaviour
             return;
         }
 
-        if ((currentStep.targetNPC == gameObject || 
-             currentStep.targetObject == gameObject || 
-             (currentStep.targetLocation != null && currentStep.targetLocation.gameObject == gameObject)))
+        if (
+            (
+                currentStep.targetNPC == gameObject
+                || currentStep.targetObject == gameObject
+                || (
+                    currentStep.targetLocation != null
+                    && currentStep.targetLocation.gameObject == gameObject
+                )
+            )
+        )
         {
             outline.enabled = true;
         }

@@ -3,9 +3,15 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] Vector3 playerLookDirection;
-    [SerializeField] GameObject playerCameraRoot;
-    [SerializeField] GameObject crosshairObject;
+    [SerializeField]
+    Vector3 playerLookDirection;
+
+    [SerializeField]
+    GameObject playerCameraRoot;
+
+    [SerializeField]
+    GameObject crosshairObject;
+
     /// <summary>
     /// Player stats
     /// </summary>
@@ -15,7 +21,9 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-        playerCameraRoot = this.gameObject.GetComponent<FirstPersonController>().CinemachineCameraTarget;
+        playerCameraRoot = this
+            .gameObject.GetComponent<FirstPersonController>()
+            .CinemachineCameraTarget;
         playerLookDirection = playerCameraRoot.transform.forward;
     }
 
@@ -30,13 +38,23 @@ public class Player : MonoBehaviour
         if (crosshairObject != null && playerCameraRoot != null)
         {
             RaycastHit hit;
-            if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, reachRange, LayerMask.GetMask("Interactable")))
+            if (
+                Physics.Raycast(
+                    playerCameraRoot.transform.position,
+                    playerCameraRoot.transform.forward,
+                    out hit,
+                    reachRange,
+                    LayerMask.GetMask("Interactable")
+                )
+            )
             {
                 crosshairObject.transform.position = hit.point;
             }
             else
             {
-                crosshairObject.transform.position = playerCameraRoot.transform.position + playerCameraRoot.transform.forward * reachRange;
+                crosshairObject.transform.position =
+                    playerCameraRoot.transform.position
+                    + playerCameraRoot.transform.forward * reachRange;
             }
         }
     }

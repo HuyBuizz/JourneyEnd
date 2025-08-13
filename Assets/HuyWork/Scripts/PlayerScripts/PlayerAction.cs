@@ -26,20 +26,53 @@ public class PlayerAction : MonoBehaviour
 
     /// <summary>
     /// Nhặt một vật phẩm và thêm vào kho cá nhân
-    /// </summary>
+    // /// </summary>
+
     public void Take(GameObject interactableObject)
     {
-        if (interactableObject == null) return;
+        if (interactableObject == null)
+            return;
 
-        // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ khỏi inventory
+
+        // Nếu đang cầm vật phẩm khác
         if (playerState.onHoldingItem != null)
         {
-            RemoveCurrentItem();
+            // Nếu inventory còn chỗ thì chỉ ẩn vật phẩm đang cầm đi (không drop)
+            if (inventory != null && inventory.ItemCount < inventory.MaxInventorySize)
+            {
+                HideCurrentItemToInventory();
+            }
+            else
+            {
+                // Nếu inventory đầy thì drop vật phẩm đang cầm
+                RemoveCurrentItem();
+            }
         }
 
-        playerState.onHoldingItem = interactableObject;
-        AddItemToInventory(interactableObject);
-        SetupItemForInventory(interactableObject);
+        // Chỉ thêm và setup nếu inventory còn chỗ
+        if (inventory != null && inventory.AddToPlayerInventory(interactableObject))
+        {
+            playerState.onHoldingItem = interactableObject;
+            SetupItemForInventory(interactableObject);
+        }
+        else
+        {
+            Debug.Log("Không thể nhặt thêm vật phẩm, túi đã đầy!");
+            // Có thể thêm hiệu ứng/thông báo UI ở đây nếu muốn
+        }
+    }
+
+    // Thêm hàm này để ẩn vật phẩm đang cầm và giữ trong inventory
+    private void HideCurrentItemToInventory()
+    {
+        GameObject currentItem = playerState.onHoldingItem;
+        if (currentItem != null)
+        {
+            currentItem.SetActive(false);
+            currentItem.transform.SetParent(transform.Find("PlayerCameraRoot/Inventory"));
+            // Không cần RemoveItemFromInventory vì vẫn giữ trong inventory
+        }
+        playerState.onHoldingItem = null;
     }
 
     /// <summary>
@@ -47,7 +80,8 @@ public class PlayerAction : MonoBehaviour
     /// </summary>
     public void Drop()
     {
-        if (playerState.onHoldingItem == null) return;
+        if (playerState.onHoldingItem == null)
+            return;
 
         GameObject heldObject = playerState.onHoldingItem;
         playerState.onHoldingItem = null;
@@ -61,10 +95,12 @@ public class PlayerAction : MonoBehaviour
     /// </summary>
     public void StoreItem(GameObject interactableObject)
     {
-        if (playerState.onHoldingItem == null || interactableObject == null) return;
+        if (playerState.onHoldingItem == null || interactableObject == null)
+            return;
 
         Storage storage = interactableObject.GetComponent<Storage>();
-        if (storage == null) return;
+        if (storage == null)
+            return;
 
         RemoveItemFromInventory(playerState.onHoldingItem);
         storage.TransferItemToStorage(playerState.onHoldingItem, gameObject);
@@ -141,8 +177,9 @@ public class PlayerAction : MonoBehaviour
         if (currentItem != null)
         {
             RemoveItemFromInventory(currentItem);
-            currentItem.SetActive(false);
+            // currentItem.SetActive(true);
             currentItem.transform.SetParent(null);
+            SetupItemForWorld(currentItem);
         }
         playerState.onHoldingItem = null;
     }

@@ -5,9 +5,21 @@ public class PlayerInventorySystem : MonoBehaviour
 {
     [SerializeField]
     Transform playerInventoryRoot;
+
     [SerializeField]
     List<GameObject> playerItems;
-    [SerializeField]
+    public int maxInventorySize = 5;
+
+    // Property để lấy số lượng và giới hạn
+    public int ItemCount => playerItems.Count;
+    public int MaxInventorySize => maxInventorySize;
+
+    // Lấy index của item trong inventory
+    public int GetItemIndex(GameObject item)
+    {
+        return playerItems.IndexOf(item);
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -38,12 +50,26 @@ public class PlayerInventorySystem : MonoBehaviour
         }
     }
 
-    public void AddToPlayerInventory(GameObject item)
+    // public void AddToPlayerInventory(GameObject item)
+    // {
+    //     if (item != null && !playerItems.Contains(item))
+    //     {
+    //         playerItems.Add(item);
+    //     }
+    // }
+
+    public bool AddToPlayerInventory(GameObject item)
     {
-        if (item != null && !playerItems.Contains(item))
+        if (item != null && !playerItems.Contains(item) && playerItems.Count < maxInventorySize)
         {
             playerItems.Add(item);
+            return true;
         }
+        else if (playerItems.Count >= maxInventorySize)
+        {
+            Debug.Log("Inventory is full! Cannot pick up more items.");
+        }
+        return false;
     }
 
     public void RemoveFromPlayerInventory(GameObject item)
@@ -65,7 +91,10 @@ public class PlayerInventorySystem : MonoBehaviour
                 if (index < playerItems.Count && playerItems[index] != null)
                 {
                     // Nếu đang equip item này thì ấn lại sẽ tắt nó đi
-                    if (playerState.onHoldingItem == playerItems[index] && playerItems[index].activeSelf)
+                    if (
+                        playerState.onHoldingItem == playerItems[index]
+                        && playerItems[index].activeSelf
+                    )
                     {
                         playerItems[index].SetActive(false);
                         playerState.onHoldingItem = null;
@@ -83,6 +112,14 @@ public class PlayerInventorySystem : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    public void SwapItemInInventory(int index, GameObject newItem)
+    {
+        if (index >= 0 && index < playerItems.Count && newItem != null)
+        {
+            playerItems[index] = newItem;
         }
     }
 }

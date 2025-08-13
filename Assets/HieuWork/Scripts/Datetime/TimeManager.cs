@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class TimeManager : MonoBehaviour
@@ -7,6 +8,8 @@ public class TimeManager : MonoBehaviour
     public float timeScale = 60f; // 1 real second = 1 in-game minute
 
     private float timer;
+
+    public event Action<int, int> OnTimeChanged;
 
     void Update()
     {
@@ -19,8 +22,10 @@ public class TimeManager : MonoBehaviour
             {
                 minute = 0;
                 hour++;
-                if (hour >= 24) hour = 0;
+                if (hour >= 24)
+                    hour = 0;
             }
+            OnTimeChanged?.Invoke(hour, minute);
         }
     }
 
@@ -29,4 +34,3 @@ public class TimeManager : MonoBehaviour
         return hour.ToString("00") + ":" + minute.ToString("00");
     }
 }
-
