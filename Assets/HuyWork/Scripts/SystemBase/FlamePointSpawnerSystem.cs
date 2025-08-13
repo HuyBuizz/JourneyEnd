@@ -1,56 +1,74 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
-using Unity.Transforms;
 using Unity.Mathematics;
-using UnityEngine;
+using Unity.Transforms;
 
-public partial class FlamePointSpawnerSystem : SystemBase
+[BurstCompile]
+public partial struct FlamePointSpawnerSystem : ISystem
 {
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
     {
-        if (!SystemAPI.HasSingleton<FlamePointSpawner>())
-            return;
+        state.RequireForUpdate<FlamePointSpawner>();
+    }
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        var em = state.EntityManager;
+
+        // Lấy cấu hình spawner một lần
         var spawner = SystemAPI.GetSingleton<FlamePointSpawner>();
+        var prefab  = spawner.prefab;
+        var margin  = math.max(0f, spawner.margin);
+        var density = math.max(0.0001f, spawner.pointDensity);
 
-        var prefab = spawner.prefab;
-        var margin = spawner.margin;
-        var pointDensity = spawner.pointDensity;
-
-        var ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
-
-        foreach (var (platform, transform, entity) in SystemAPI.Query<RefRO<FlamePointPlatform>, RefRO<LocalTransform>>().WithEntityAccess())
+        // Duyệt mọi platform (không cần LocalTransform nếu chỉ tính toán theo size/center)
+        foreach (var platform in SystemAPI.Query<RefRO<FlamePointPlatform>>())
         {
-            var size = platform.ValueRO.size;
+            var size   = platform.ValueRO.size;
             var center = platform.ValueRO.center;
 
-            float usableX = size.x - 2 * margin;
-            float usableZ = size.z - 2 * margin;
-            float area = usableX * usableZ;
+            // Vùng sử dụng sau khi trừ margin (clamp nhỏ nhất > 0 để tránh chia 0)
+            float usableX = math.max(0.0001f, size.x - 2f * margin);
+            float usableZ = math.max(0.0001f, size.z - 2f * margin);
+            float area    = usableX * usableZ;
 
-            int totalPoints = math.max(1, (int)math.round(area * pointDensity));
+            int totalPoints  = math.max(1, (int)math.round(area * density));
             int pointsPerRow = math.max(2, (int)math.round(math.sqrt(totalPoints)));
+            int spawnCount   = pointsPerRow * pointsPerRow;
 
             float stepX = usableX / (pointsPerRow - 1);
             float stepZ = usableZ / (pointsPerRow - 1);
-            float y = center.y + size.y / 2;
 
-            for (int i = 0; i < pointsPerRow; i++)
+            // Đặt lưới tại mặt trên của platform
+            float y = center.y + size.y * 0.5f;
+
+            // Tính sẵn gốc lưới
+            float startX = center.x - size.x * 0.5f + margin;
+            float startZ = center.z - size.z * 0.5f + margin;
+
+            // Batch instantiate
+            using (var created = new NativeArray<Entity>(spawnCount, Allocator.Temp))
             {
-                for (int j = 0; j < pointsPerRow; j++)
-                {
-                    float x = center.x - size.x / 2 + margin + i * stepX;
-                    float z = center.z - size.z / 2 + margin + j * stepZ;
-                    float3 spawnPos = new float3(x, y, z);
+                em.Instantiate(prefab, created);
 
-                    Entity flame = ecb.Instantiate(prefab);
-                    ecb.SetComponent(flame, LocalTransform.FromPosition(spawnPos));
+                int k = 0;
+                for (int i = 0; i < pointsPerRow; i++)
+                {
+                    float x = startX + i * stepX;
+                    for (int j = 0; j < pointsPerRow; j++)
+                    {
+                        float z = startZ + j * stepZ;
+                        em.SetComponentData(created[k++], LocalTransform.FromPosition(new float3(x, y, z)));
+                    }
                 }
             }
         }
 
-        ecb.Playback(EntityManager);
-        ecb.Dispose();
-
+        // Hủy singleton để hệ này chỉ chạy một lần
         var singletonEntity = SystemAPI.GetSingletonEntity<FlamePointSpawner>();
-        EntityManager.DestroyEntity(singletonEntity);
+        em.DestroyEntity(singletonEntity);
     }
 }
