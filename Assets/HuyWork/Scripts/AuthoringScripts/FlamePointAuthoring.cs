@@ -62,13 +62,7 @@ public class FlamePointAuthoring : MonoBehaviour
 
             // Thêm Burning dưới dạng enableable và set trạng thái ban đầu theo onFire
             AddComponent<Burning>(e);
-            SetComponentEnabled<Burning>(e, a.onFire); // ❗ không dùng state.EntityManager trong Baker
+            SetComponentEnabled<Burning>(e, a.onFire); 
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectRadius);
     }
 }

@@ -1,9 +1,36 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerAction : MonoBehaviour
 {
     private PlayerState playerState;
     private PlayerInventorySystem inventory;
+
+    [SerializeField]
+    PlayerInput playerInput;
+
+    InputAction interactAction;
+
+    void Awake()
+    {
+        if (playerInput == null)
+            playerInput = GetComponent<PlayerInput>();
+
+        // Lấy action "Drop" từ PlayerInput
+        interactAction = playerInput.actions["Drop"];
+    }
+
+    void OnEnable()
+    {
+        if (interactAction != null)
+            interactAction.Enable();
+    }
+
+    void OnDisable()
+    {
+        if (interactAction != null)
+            interactAction.Disable();
+    }
 
     void Start()
     {
@@ -18,7 +45,7 @@ public class PlayerAction : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (interactAction.triggered)
         {
             Drop();
         }
@@ -28,11 +55,32 @@ public class PlayerAction : MonoBehaviour
     /// Nhặt một vật phẩm và thêm vào kho cá nhân
     // /// </summary>
 
+    // public void Take(GameObject interactableObject)
+    // {
+    //     if (interactableObject == null)
+    //         return;
+
+    //     // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ khỏi inventory
+    //     if (playerState.onHoldingItem != null)
+    //     {
+    //         RemoveCurrentItem();
+    //     }
+
+    //     playerState.onHoldingItem = interactableObject;
+    //     AddItemToInventory(interactableObject);
+    //     SetupItemForInventory(interactableObject);
+    // }
+
     public void Take(GameObject interactableObject)
     {
         if (interactableObject == null)
             return;
 
+        // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ khỏi inventory
+        // if (playerState.onHoldingItem != null)
+        // {
+        //     RemoveCurrentItem();
+        // }
 
         // Nếu đang cầm vật phẩm khác
         if (playerState.onHoldingItem != null)

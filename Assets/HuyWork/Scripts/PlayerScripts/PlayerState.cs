@@ -16,5 +16,15 @@ public class PlayerState : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update() { }
+    void Update()
+    {
+        if (onHoldingItem != null)
+        {
+            MultiKeyHintUI.isHoldingItem = true;
+        }
+        else
+        {
+            MultiKeyHintUI.isHoldingItem = false;
+        }
+    }
 }

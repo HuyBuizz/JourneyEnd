@@ -6,8 +6,6 @@ public class FlameEffectSpawnerAuthoring : MonoBehaviour
     [Header("Prefab")]
     public GameObject effectPrefab;
 
-
-
     class FlameEffectSpawnerAuthoringBaker : Baker<FlameEffectSpawnerAuthoring>
     {
         public override void Bake(FlameEffectSpawnerAuthoring authoring)
@@ -21,7 +19,6 @@ public class FlameEffectSpawnerAuthoring : MonoBehaviour
         }
     }
 }
-
 
 public struct FlameEffectSpawner : IComponentData
 {
