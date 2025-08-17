@@ -24,6 +24,7 @@ public class PlayerInteractionSystem : MonoBehaviour
 
     void Awake()
     {
+        if (!playerCameraRoot) playerCameraRoot = transform.Find("PlayerCameraRoot").gameObject;
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!playerAction) playerAction = GetComponent<PlayerAction>();
 
