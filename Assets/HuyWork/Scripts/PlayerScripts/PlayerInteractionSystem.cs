@@ -87,8 +87,6 @@ public class PlayerInteractionSystem : MonoBehaviour
 
         else
             interactableObject = null;
-        Debug.Log($"No Interactable object");
-
     }
 
     void HandleOutlineAndUI()
