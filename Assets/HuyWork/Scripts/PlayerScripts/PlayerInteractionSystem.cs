@@ -12,14 +12,12 @@ public class PlayerInteractionSystem : MonoBehaviour
 
     [Header("Config")]
     [SerializeField] LayerMask interactableMask;      
-    [SerializeField] float reachRange = 3f;
-    [SerializeField] float raycastInterval = 0.02f;   // 50Hz cho detect/outline
+    [SerializeField] float raycastInterval = 0.02f;   
 
     [SerializeField] GameObject interactableObject;
     GameObject lastOutlinedObject;
-    Outline lastOutline;                           // cache để bật/tắt
+    Outline lastOutline;                          
     InputAction interactAction;
-
     float _rayTimer;
 
     void Awake()
@@ -37,10 +35,6 @@ public class PlayerInteractionSystem : MonoBehaviour
             var fpc = GetComponent<FirstPersonController>();
             if (fpc != null) playerCameraRoot = fpc.CinemachineCameraTarget;
         }
-
-        // nếu bạn có Player component chứa reachRange thì vẫn có thể lấy 1 lần:
-        var p = GetComponent<Player>();
-        if (p) reachRange = p.reachRange;
     }
 
     void OnEnable()
@@ -77,12 +71,7 @@ public class PlayerInteractionSystem : MonoBehaviour
         var origin = playerCameraRoot ? playerCameraRoot.transform.position : transform.position;
         var dir = playerCameraRoot ? playerCameraRoot.transform.forward : transform.forward;
 
-        // Nếu cần NonAlloc:
-        // static RaycastHit[] _hits = new RaycastHit[1];
-        // int count = Physics.RaycastNonAlloc(origin, dir, _hits, reachRange, interactableMask);
-        // interactableObject = count > 0 ? _hits[0].collider.gameObject : null;
-
-        if (Physics.Raycast(origin, dir, out var hit, reachRange, interactableMask))
+        if (Physics.Raycast(origin, dir, out var hit, GetComponent<Player>().reachRange, interactableMask))
             interactableObject = hit.collider.gameObject;
 
         else

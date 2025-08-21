@@ -3,8 +3,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField]
-    Vector3 playerLookDirection;
+    public Vector3 playerLookDirection;
 
     [SerializeField]
     GameObject playerCameraRoot;
@@ -24,13 +23,13 @@ public class Player : MonoBehaviour
         playerCameraRoot = this
             .gameObject.GetComponent<FirstPersonController>()
             .CinemachineCameraTarget;
-        playerLookDirection = playerCameraRoot.transform.forward;
     }
 
     // Update is called once per frame
     void Update()
     {
         PlaceCrosshair();
+        playerLookDirection = playerCameraRoot.transform.forward;
     }
 
     void PlaceCrosshair()

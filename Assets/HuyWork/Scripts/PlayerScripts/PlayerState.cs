@@ -1,3 +1,4 @@
+using Mono.Cecil.Cil;
 using StarterAssets;
 using UnityEngine;
 
@@ -8,11 +9,20 @@ public class PlayerState : MonoBehaviour
 
     [SerializeField]
     public GameObject onHoldingItem;
+    public MultiKeyHintUI keyHintUI;
+    public GameObject playerCameraRoot;
+    public Vector3 playerLookDirection;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
         playerObject = this.gameObject;
+        if (!playerCameraRoot)
+        {
+            var fpc = GetComponent<FirstPersonController>();
+            if (fpc != null) playerCameraRoot = fpc.CinemachineCameraTarget;
+        }
+        playerLookDirection = playerCameraRoot.transform.forward;
     }
 
     // Update is called once per frame

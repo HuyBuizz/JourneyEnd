@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,6 +11,9 @@ public class PlayerAction : MonoBehaviour
     PlayerInput playerInput;
 
     InputAction interactAction;
+    [SerializeField]
+    public MultiKeyHintUI keyHintUI;
+    public Vector3 itemGUIPosition = new Vector3(0.3f, -0.2f, 1);
 
     void Awake()
     {
@@ -48,39 +52,16 @@ public class PlayerAction : MonoBehaviour
         if (interactAction.triggered)
         {
             Drop();
+            // Cập nhật key hints sau khi drop
         }
+
+        SetItemGUIPosition();
     }
-
-    /// <summary>
-    /// Nhặt một vật phẩm và thêm vào kho cá nhân
-    // /// </summary>
-
-    // public void Take(GameObject interactableObject)
-    // {
-    //     if (interactableObject == null)
-    //         return;
-
-    //     // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ khỏi inventory
-    //     if (playerState.onHoldingItem != null)
-    //     {
-    //         RemoveCurrentItem();
-    //     }
-
-    //     playerState.onHoldingItem = interactableObject;
-    //     AddItemToInventory(interactableObject);
-    //     SetupItemForInventory(interactableObject);
-    // }
 
     public void Take(GameObject interactableObject)
     {
         if (interactableObject == null)
             return;
-
-        // Nếu đang cầm vật phẩm khác thì ẩn nó đi và bỏ khỏi inventory
-        // if (playerState.onHoldingItem != null)
-        // {
-        //     RemoveCurrentItem();
-        // }
 
         // Nếu đang cầm vật phẩm khác
         if (playerState.onHoldingItem != null)
@@ -136,6 +117,10 @@ public class PlayerAction : MonoBehaviour
 
         RemoveItemFromInventory(heldObject);
         SetupItemForWorld(heldObject);
+
+        // >>> CẬP NHẬT TRẠNG THÁI VÀ HINT
+        MultiKeyHintUI.isHoldingItem = false;
+        if (keyHintUI != null) keyHintUI.UpdateAllKeyHints();
     }
 
     /// <summary>
@@ -165,8 +150,8 @@ public class PlayerAction : MonoBehaviour
         {
             item.transform.SetParent(inventoryRoot);
             item.transform.localRotation = Quaternion.identity;
-            item.transform.localPosition = new Vector3(0.3f, -0.2f, 1);
-            item.transform.localScale = Vector3.one / 5;
+
+            // item.transform.localScale = Vector3.one / 5;
         }
 
         var rb = item.GetComponent<Rigidbody>();
@@ -176,6 +161,16 @@ public class PlayerAction : MonoBehaviour
         }
 
         item.SetActive(true);
+        item.GetComponent<Item>().equipper = gameObject;
+    }
+
+    private void SetItemGUIPosition()
+    {
+        var inventoryRoot = transform.Find("PlayerCameraRoot/Inventory");
+        foreach (Transform item in inventoryRoot.transform)
+        {
+            item.transform.localPosition = itemGUIPosition;
+        }
     }
 
     /// <summary>
@@ -192,6 +187,7 @@ public class PlayerAction : MonoBehaviour
         }
 
         item.SetActive(true);
+        item.GetComponent<Item>().equipper = null;
     }
 
     /// <summary>

@@ -23,6 +23,7 @@ public class MultiKeyHintUI : MonoBehaviour
 
     public static GameObject interactTarget;
 
+    [SerializeField]
     public static bool isHoldingItem;
 
     void Awake()
