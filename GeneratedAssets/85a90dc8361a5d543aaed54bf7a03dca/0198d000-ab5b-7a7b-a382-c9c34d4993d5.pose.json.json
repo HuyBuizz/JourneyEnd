@@ -1,0 +1,11 @@
+{
+    "asset": "85a90dc8361a5d543aaed54bf7a03dca",
+    "fileName": "0198d000-ab5b-7a7b-a382-c9c34d4993d5.pose.json",
+    "prompt": "Carry someone on your hand\n",
+    "negativePrompt": "",
+    "model": "a9c27ca4-3ec9-43e8-96cd-ee891aba64c5",
+    "modelName": "Text to Motion",
+    "customSeed": 116362697,
+    "w3CTraceId": "959b308769da2fb381a3bfb821ce6398",
+    "isTrimmed": false
+}

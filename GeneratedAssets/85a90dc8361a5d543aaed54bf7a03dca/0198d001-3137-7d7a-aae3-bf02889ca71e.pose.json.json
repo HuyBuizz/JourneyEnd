@@ -1,0 +1,11 @@
+{
+    "asset": "85a90dc8361a5d543aaed54bf7a03dca",
+    "fileName": "0198d001-3137-7d7a-aae3-bf02889ca71e.pose.json",
+    "prompt": "carry heavy object",
+    "negativePrompt": "",
+    "model": "a9c27ca4-3ec9-43e8-96cd-ee891aba64c5",
+    "modelName": "Text to Motion",
+    "customSeed": 385688119,
+    "w3CTraceId": "b654afce321c13c06646cf851b248003",
+    "isTrimmed": false
+}

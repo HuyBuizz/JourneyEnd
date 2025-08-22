@@ -1,0 +1,11 @@
+{
+    "asset": "ccf3a35ec815363448c841508befa593",
+    "fileName": "0198cffc-a890-7491-9bd2-d33616d6ca30.pose.json",
+    "prompt": "carry someone on your shoulders",
+    "negativePrompt": "",
+    "model": "a9c27ca4-3ec9-43e8-96cd-ee891aba64c5",
+    "modelName": "Text to Motion",
+    "customSeed": 176257552,
+    "w3CTraceId": "e6eb7a0d7f8034bec21c3ab74de5d72a",
+    "isTrimmed": false
+}

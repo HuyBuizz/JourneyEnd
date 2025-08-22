@@ -191,6 +191,9 @@ namespace StarterAssets
 
         private void Move()
         {
+            // if the player is climbing, do not move
+            if (GetComponent<PlayerState>().isPLayerClimbing) return;
+
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -294,7 +297,7 @@ namespace StarterAssets
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-            if (_verticalVelocity < _terminalVelocity)
+            if (_verticalVelocity < _terminalVelocity && GetComponent<PlayerState>().isPLayerClimbing == false)
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
             }

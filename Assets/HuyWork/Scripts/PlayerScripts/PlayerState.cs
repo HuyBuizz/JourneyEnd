@@ -6,12 +6,14 @@ public class PlayerState : MonoBehaviour
 {
     [SerializeField]
     GameObject playerObject;
-
-    [SerializeField]
-    public GameObject onHoldingItem;
     public MultiKeyHintUI keyHintUI;
     public GameObject playerCameraRoot;
     public Vector3 playerLookDirection;
+    [Header("Player State")]
+    public GameObject onHoldingItem;
+
+    public bool isInClimbableState = false;
+    public bool isPLayerClimbing = false;
 
 
     void Start()
