@@ -11,26 +11,21 @@ public class LadderClimbing : MonoBehaviour
     public float climbSpeed = 3.0f;
     public LayerMask ladderLayer;
     public Transform playerTransform;
-
     private CharacterController characterController;
     private StarterAssetsInputs inputs;
     private FirstPersonController firstPersonController;
-    private GameObject playerCameraRoot;
     private PlayerState playerState;
-
-
+    
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
         inputs = GetComponent<StarterAssetsInputs>();
         firstPersonController = GetComponent<FirstPersonController>();
-        playerCameraRoot = firstPersonController.CinemachineCameraTarget;
         playerState = GetComponent<PlayerState>();
     }
 
     private void Update()
     {
-        CheckForLadder();
 
         if (Input.GetKey(KeyCode.F) && playerState.isInClimbableState && !playerState.isPLayerClimbing)
         {
@@ -45,20 +40,6 @@ public class LadderClimbing : MonoBehaviour
         else
         {
             StopClimbing();
-        }
-    }
-
-    private void CheckForLadder()
-    {
-        // Cast a ray to detect ladders
-        RaycastHit hit;
-        if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, 1.0f, ladderLayer))
-        {
-            playerState.isInClimbableState = true;
-        }
-        else
-        {
-            playerState.isInClimbableState = false;
         }
     }
 

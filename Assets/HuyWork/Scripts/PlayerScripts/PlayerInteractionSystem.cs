@@ -8,12 +8,12 @@ public class PlayerInteractionSystem : MonoBehaviour
     [SerializeField] GameObject playerCameraRoot;
     [SerializeField] PlayerInput playerInput;
     [SerializeField] PlayerAction playerAction;      
+    [SerializeField] PlayerState playerState;    
     [SerializeField] MultiKeyHintUI keyHintUI;
 
     [Header("Config")]
     [SerializeField] LayerMask interactableMask;      
     [SerializeField] float raycastInterval = 0.02f;   
-
     [SerializeField] GameObject interactableObject;
     GameObject lastOutlinedObject;
     Outline lastOutline;                          
@@ -24,6 +24,7 @@ public class PlayerInteractionSystem : MonoBehaviour
     {
         if (!playerInput) playerInput = GetComponent<PlayerInput>();
         if (!playerAction) playerAction = GetComponent<PlayerAction>();
+        if (!playerState) playerState = GetComponent<PlayerState>();
 
         interactAction = playerInput.actions["Interact"];
     }
@@ -64,6 +65,7 @@ public class PlayerInteractionSystem : MonoBehaviour
         }
 
         HandleInteract();
+        CheckForLadder();
     }
 
     void DetectInteractableObject()
@@ -106,6 +108,19 @@ public class PlayerInteractionSystem : MonoBehaviour
         if (keyHintUI) keyHintUI.UpdateAllKeyHints();
     }
 
+    private void CheckForLadder()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, 1.0f, LayerMask.GetMask("LadderLayer")) && hit.collider.CompareTag("Ladder"))
+        {
+            playerState.isInClimbableState = true;
+        }
+        else
+        {
+            playerState.isInClimbableState = false;
+        }
+    }
+
     void HandleInteract()
     {
         if (interactAction == null || !interactAction.triggered || !interactableObject)
@@ -123,6 +138,7 @@ public class PlayerInteractionSystem : MonoBehaviour
             case Interactable.InteractableType.Storage:
                 playerAction.StoreItem(interactableObject);
                 break;
+            case Interactable.InteractableType.Climb:
             default:
                 // Debug.Log($"Interactable type not handled: {it.interactableType}");
                 break;

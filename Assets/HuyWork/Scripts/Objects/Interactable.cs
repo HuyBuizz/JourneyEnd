@@ -6,6 +6,7 @@ public class Interactable : MonoBehaviour
     {
         Takeable,
         Storage,
+        Climb
 
     }
     public InteractableType interactableType;
