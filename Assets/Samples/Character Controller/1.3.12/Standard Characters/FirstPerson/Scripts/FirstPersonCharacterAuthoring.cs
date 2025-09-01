@@ -24,6 +24,9 @@ public class FirstPersonCharacterAuthoring : MonoBehaviour
     public BasicStepAndSlopeHandlingParameters StepAndSlopeHandling = BasicStepAndSlopeHandlingParameters.GetDefault();
     public float MinViewAngle = -90f;
     public float MaxViewAngle = 90f;
+    ///////////////////////////////////////////////////////////////////
+    public float InteractionReach = 3f;
+    ///////////////////////////////////////////////////////////////////
 
     public class Baker : Baker<FirstPersonCharacterAuthoring>
     {
@@ -51,7 +54,19 @@ public class FirstPersonCharacterAuthoring : MonoBehaviour
                 ViewPitchDegrees = 0f,
                 ViewLocalRotation = quaternion.identity,
             });
-            AddComponent(entity, new FirstPersonCharacterControl());
+            AddComponent(entity, new FirstPersonCharacterControl
+            {
+                CursorLocked = true,
+            });
+            AddComponent(entity, new InteractionConfig
+            {
+                ReachRange = authoring.InteractionReach,
+            });
+            AddComponent(entity, new InteractionData
+            {
+                InteractableEntity = Entity.Null,
+                InteractionPoint = float3.zero,
+            });
         }
     }
 }

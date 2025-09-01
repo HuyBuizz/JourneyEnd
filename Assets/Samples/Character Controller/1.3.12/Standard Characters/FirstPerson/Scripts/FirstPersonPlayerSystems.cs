@@ -1,127 +1,3 @@
-// using Unity.Burst;
-// using Unity.Collections;
-// using Unity.Entities;
-// using Unity.Jobs;
-// using Unity.Mathematics;
-// using Unity.Transforms;
-// using UnityEngine;
-// #if ENABLE_INPUT_SYSTEM
-// using UnityEngine.InputSystem;
-// #endif
-// using Unity.CharacterController;
-
-// [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-// [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
-
-// public partial class FirstPersonPlayerInputsSystem : SystemBase
-// {
-//     protected override void OnCreate()
-//     {
-//         RequireForUpdate<FixedTickSystem.Singleton>();
-//         RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FirstPersonPlayer, FirstPersonPlayerInputs>().Build());
-//     }
-
-//     protected override void OnUpdate()
-//     {
-//         uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
-
-// #if ENABLE_INPUT_SYSTEM
-//         foreach (var (playerInputs, player) in SystemAPI.Query<RefRW<FirstPersonPlayerInputs>, FirstPersonPlayer>())
-//         {
-//             playerInputs.ValueRW.MoveInput = new float2
-//             {
-//                 x = (Keyboard.current.dKey.isPressed ? 1f : 0f) + (Keyboard.current.aKey.isPressed ? -1f : 0f),
-//                 y = (Keyboard.current.wKey.isPressed ? 1f : 0f) + (Keyboard.current.sKey.isPressed ? -1f : 0f),
-//             };
-
-//             playerInputs.ValueRW.LookInput = Mouse.current.delta.ReadValue() * player.LookInputSensitivity;
-
-//             if (Keyboard.current.spaceKey.wasPressedThisFrame)
-//             {
-//                 playerInputs.ValueRW.JumpPressed.Set(tick);
-//             }
-//         }
-// #endif
-//     }
-// }
-
-// /// <summary>
-// /// Apply inputs that need to be read at a variable rate
-// /// </summary>
-// [UpdateInGroup(typeof(SimulationSystemGroup))]
-// [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
-// [BurstCompile]
-// public partial struct FirstPersonPlayerVariableStepControlSystem : ISystem
-// {
-//     [BurstCompile]
-//     public void OnCreate(ref SystemState state)
-//     {
-//         state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FirstPersonPlayer, FirstPersonPlayerInputs>().Build());
-//     }
-
-//     [BurstCompile]
-//     public void OnUpdate(ref SystemState state)
-//     {
-//         foreach (var (playerInputs, player) in SystemAPI.Query<FirstPersonPlayerInputs, FirstPersonPlayer>().WithAll<Simulate>())
-//         {
-//             if (SystemAPI.HasComponent<FirstPersonCharacterControl>(player.ControlledCharacter))
-//             {
-//                 FirstPersonCharacterControl characterControl = SystemAPI.GetComponent<FirstPersonCharacterControl>(player.ControlledCharacter);
-
-//                 characterControl.LookDegreesDelta = playerInputs.LookInput;
-
-//                 SystemAPI.SetComponent(player.ControlledCharacter, characterControl);
-//             }
-//         }
-//     }
-// }
-
-// /// <summary>
-// /// Apply inputs that need to be read at a fixed rate.
-// /// It is necessary to handle this as part of the fixed step group, in case your framerate is lower than the fixed step rate.
-// /// </summary>
-// [UpdateInGroup(typeof(FixedStepSimulationSystemGroup), OrderFirst = true)]
-// [BurstCompile]
-// public partial struct FirstPersonPlayerFixedStepControlSystem : ISystem
-// {
-//     [BurstCompile]
-//     public void OnCreate(ref SystemState state)
-//     {
-//         state.RequireForUpdate<FixedTickSystem.Singleton>();
-//         state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FirstPersonPlayer, FirstPersonPlayerInputs>().Build());
-//     }
-
-//     [BurstCompile]
-//     public void OnUpdate(ref SystemState state)
-//     {
-//         uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
-
-//         foreach (var (playerInputs, player) in SystemAPI.Query<FirstPersonPlayerInputs, FirstPersonPlayer>().WithAll<Simulate>())
-//         {
-//             if (SystemAPI.HasComponent<FirstPersonCharacterControl>(player.ControlledCharacter))
-//             {
-//                 FirstPersonCharacterControl characterControl = SystemAPI.GetComponent<FirstPersonCharacterControl>(player.ControlledCharacter);
-
-//                 quaternion characterRotation = SystemAPI.GetComponent<LocalTransform>(player.ControlledCharacter).Rotation;
-
-//                 // Move
-//                 float3 characterForward = MathUtilities.GetForwardFromRotation(characterRotation);
-//                 float3 characterRight = MathUtilities.GetRightFromRotation(characterRotation);
-//                 characterControl.MoveVector = (playerInputs.MoveInput.y * characterForward) + (playerInputs.MoveInput.x * characterRight);
-//                 characterControl.MoveVector = MathUtilities.ClampToMaxLength(characterControl.MoveVector, 1f);
-
-//                 // Jump
-//                 characterControl.Jump = playerInputs.JumpPressed.IsSet(tick);
-
-//                 SystemAPI.SetComponent(player.ControlledCharacter, characterControl);
-//             }
-//         }
-//     }
-// }
-
-// 9/1/2025 AI-Tag
-// This was created with the help of Assistant, a Unity Artificial Intelligence product.
-
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -138,20 +14,19 @@ using Unity.CharacterController;
 [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
 public partial class FirstPersonPlayerInputsSystem : SystemBase
 {
-    [Header("Mouse Cursor Settings")]
-    public bool cursorLocked = true;
-    public bool cursorInputForLook = true;
-
     protected override void OnCreate()
     {
         RequireForUpdate<FixedTickSystem.Singleton>();
         RequireForUpdate(SystemAPI.QueryBuilder().WithAll<FirstPersonPlayer, FirstPersonPlayerInputs>().Build());
 
         // Lock the cursor initially if cursorLocked is true
-        if (cursorLocked)
+        foreach (var player in SystemAPI.Query<FirstPersonCharacterControl>())
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            if (player.CursorLocked)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
         }
     }
 
@@ -160,24 +35,22 @@ public partial class FirstPersonPlayerInputsSystem : SystemBase
         uint tick = SystemAPI.GetSingleton<FixedTickSystem.Singleton>().Tick;
 
 #if ENABLE_INPUT_SYSTEM
-        // Handle cursor locking/unlocking
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            cursorLocked = !cursorLocked;
-            Cursor.lockState = cursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !cursorLocked;
-        }
+
 
         foreach (var (playerInputs, player) in SystemAPI.Query<RefRW<FirstPersonPlayerInputs>, FirstPersonPlayer>())
         {
+            if (!SystemAPI.HasComponent<FirstPersonCharacterControl>(player.ControlledCharacter))
+                continue;
+            var characterControl = SystemAPI.GetComponent<FirstPersonCharacterControl>(player.ControlledCharacter);
+
             playerInputs.ValueRW.MoveInput = new float2
             {
                 x = (Keyboard.current.dKey.isPressed ? 1f : 0f) + (Keyboard.current.aKey.isPressed ? -1f : 0f),
                 y = (Keyboard.current.wKey.isPressed ? 1f : 0f) + (Keyboard.current.sKey.isPressed ? -1f : 0f),
             };
 
-            // Only process camera look input if cursorInputForLook is true
-            if (cursorInputForLook)
+            // Only process camera look input if cursorLocked is true
+            if (characterControl.CursorLocked)
             {
                 playerInputs.ValueRW.LookInput = Mouse.current.delta.ReadValue() * player.LookInputSensitivity;
             }
@@ -186,6 +59,30 @@ public partial class FirstPersonPlayerInputsSystem : SystemBase
             {
                 playerInputs.ValueRW.JumpPressed.Set(tick);
             }
+
+            // ESC: hiện/ẩn cursor
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                characterControl.CursorLocked = false; // unlock để hiện
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                playerInputs.ValueRW.LookInput = float2.zero; // ngừng xoay camera
+            }
+
+            // Click chuột trái: lock lại
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                characterControl.CursorLocked = true;
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+            
+            if (Keyboard.current.fKey.wasPressedThisFrame)
+            {
+                
+            }
+
+            SystemAPI.SetComponent(player.ControlledCharacter, characterControl);
         }
 #endif
     }

@@ -1,5 +1,5 @@
-using UnityEngine;
 using Unity.Entities;
+using UnityEngine;
 
 public class BallAuthoring : MonoBehaviour
 {
@@ -8,7 +8,9 @@ public class BallAuthoring : MonoBehaviour
         public override void Bake(BallAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
+
             AddComponent(entity, new Ball());
         }
     }
 }
+public struct Ball : IComponentData { }

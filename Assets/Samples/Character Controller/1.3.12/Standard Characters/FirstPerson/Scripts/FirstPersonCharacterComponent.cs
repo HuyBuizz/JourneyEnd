@@ -32,6 +32,8 @@ public struct FirstPersonCharacterControl : IComponentData
     public float3 MoveVector;
     public float2 LookDegreesDelta;
     public bool Jump;
+    public bool CursorLocked;
+    public bool Interact;
 }
 
 [Serializable]
