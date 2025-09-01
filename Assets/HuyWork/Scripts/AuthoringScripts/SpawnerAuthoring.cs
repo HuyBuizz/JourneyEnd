@@ -7,8 +7,7 @@ public class SpawnerAuthoring : MonoBehaviour
     public enum SpawnerType
     {
         FlamePoint,
-        Car,
-        Human,
+        SpawnPoint,
         Other
     }
 

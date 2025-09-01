@@ -8,6 +8,7 @@ public class SettingsTabManager : MonoBehaviour
     public GameObject controlButton;
     public GameObject performanceButton;
     public GameObject languageButton;
+
     [Header("Các panel nội dung")]
     public GameObject graphicPanel;
     public GameObject audioPanel;
@@ -18,6 +19,13 @@ public class SettingsTabManager : MonoBehaviour
     [Header("Menu chính & Settings Panel")]
     public GameObject mainMenu;
     public GameObject settingsPanel;
+
+    [Header("Image của các button")]
+    public GameObject graphicButtonImage;
+    public GameObject audioButtonImage;
+    public GameObject controlButtonImage;
+    public GameObject performanceButtonImage;
+    public GameObject languageButtonImage;
 
     private GameObject currentPanel;
 
@@ -33,6 +41,18 @@ public class SettingsTabManager : MonoBehaviour
 
         panel.SetActive(true);
         currentPanel = panel;
+
+        UpdateButtonImages();
+    }
+
+    // bật/tắt image button dựa trên panel đang mở
+    private void UpdateButtonImages()
+    {
+        graphicButtonImage.SetActive(currentPanel == graphicPanel);
+        audioButtonImage.SetActive(currentPanel == audioPanel);
+        controlButtonImage.SetActive(currentPanel == controlPanel);
+        performanceButtonImage.SetActive(currentPanel == performancePanel);
+        languageButtonImage.SetActive(currentPanel == languagePanel);
     }
 
     public void OnGraphicButton() => ShowPanel(graphicPanel);

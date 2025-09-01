@@ -6,8 +6,7 @@ public struct SpawnZone : IComponentData
     public enum SpawnZoneType
     {
         FlamePoint,
-        Car,
-        Human,
+        SpawnPoint,
         Other
     }
 

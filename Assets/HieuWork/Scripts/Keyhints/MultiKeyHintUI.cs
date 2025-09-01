@@ -16,7 +16,7 @@ public class MultiKeyHintUI : MonoBehaviour
     [Header("Player Input")]
     public PlayerInput playerInput;
     public string actionMapName = "Player";
-    public string targetBindingGroup = "Keyboard&Mouse";
+    public string targetBindingGroup = "KeyboardMouse";
 
     [Header("Key Hints")]
     public List<KeyHintEntry> keyHints = new List<KeyHintEntry>();

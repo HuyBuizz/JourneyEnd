@@ -67,10 +67,8 @@ public partial struct SpawnPointSetupSystem : ISystem
                     SpawnFlamePoint(em, physics, ecb, spawner, spawnerEntity, bounds, yBounds);
                     break;
 
-                case SpawnerAuthoring.SpawnerType.Car:
-                    break;
-                
-                case SpawnerAuthoring.SpawnerType.Human:
+                case SpawnerAuthoring.SpawnerType.SpawnPoint:
+                    SpawnCustomPoint(em, physics, ecb, spawner, spawnerEntity, bounds, yBounds);
                     break;
 
                 default:
@@ -93,8 +91,110 @@ public partial struct SpawnPointSetupSystem : ISystem
     {
         float margin = math.max(0f, spawner.ValueRO.margin);
         float density = math.max(0.0001f, spawner.ValueRO.pointDensity);
-        float spacing = math.sqrt(1f / density);
-        float jitterK = 0.2f;
+        float minDistance = math.sqrt(1f / density); // Minimum distance between points
+        var filter = CollisionFilter.Default;
+
+        float minX = bounds.Min.x + margin;
+        float maxX = bounds.Max.x - margin;
+        float minZ = bounds.Min.y + margin;
+        float maxZ = bounds.Max.y - margin;
+        if (maxX <= minX || maxZ <= minZ) return;
+
+        // Initialize Poisson Disc Sampling
+        var points = new NativeList<float2>(Allocator.Temp);
+        var activeList = new NativeList<float2>(Allocator.Temp);
+        uint seed = (uint)spawnerEntity.Index;
+        var rand = Unity.Mathematics.Random.CreateFromIndex(seed);
+
+        // Start with a random point
+        float2 firstPoint = new float2(
+            rand.NextFloat(minX, maxX),
+            rand.NextFloat(minZ, maxZ)
+        );
+        points.Add(firstPoint);
+        activeList.Add(firstPoint);
+
+        // Poisson Disc Sampling parameters
+        int maxAttempts = 30; // Max attempts to find a valid point around a sample
+        float minDistanceSqr = minDistance * minDistance;
+
+        // Generate points using Poisson Disc Sampling
+        while (activeList.Length > 0)
+        {
+            int activeIndex = rand.NextInt(0, activeList.Length);
+            float2 center = activeList[activeIndex];
+            bool foundValidPoint = false;
+
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                // Generate a random point in an annulus (minDistance to 2*minDistance)
+                float angle = rand.NextFloat(0f, 2f * math.PI);
+                float radius = rand.NextFloat(minDistance, 2f * minDistance);
+                float2 candidate = center + new float2(math.cos(angle), math.sin(angle)) * radius;
+
+                // Check if candidate is within bounds
+                if (candidate.x < minX || candidate.x > maxX || candidate.y < minZ || candidate.y > maxZ)
+                    continue;
+
+                // Check minimum distance to existing points
+                bool isValid = true;
+                for (int j = 0; j < points.Length; j++)
+                {
+                    if (math.distancesq(candidate, points[j]) < minDistanceSqr)
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+
+                if (isValid)
+                {
+                    points.Add(candidate);
+                    activeList.Add(candidate);
+                    foundValidPoint = true;
+                    break;
+                }
+            }
+
+            if (!foundValidPoint)
+            {
+                activeList.RemoveAt(activeIndex); // Remove center if no valid point found
+            }
+        }
+
+        // Spawn entities at valid points using raycasts
+        var prefabLT = em.GetComponentData<LocalTransform>(spawner.ValueRO.prefab);
+        for (int i = 0; i < points.Length; i++)
+        {
+            float2 point = points[i];
+            float3 from = new float3(point.x, yBounds.y + 0.5f, point.y);
+            float3 to = new float3(point.x, yBounds.x - 0.5f, point.y);
+
+            var input = new RaycastInput { Start = from, End = to, Filter = filter };
+            if (physics.CollisionWorld.CastRay(input, out var hit))
+            {
+                var hitEntity = physics.Bodies[hit.RigidBodyIndex].Entity;
+                if (!em.HasComponent<SpawnZone>(hitEntity)) continue;
+                if (hit.SurfaceNormal.y < 0.2f) continue;
+
+                var e = ecb.Instantiate(spawner.ValueRO.prefab);
+                prefabLT.Position = hit.Position;
+                prefabLT.Scale = 1f;
+                ecb.SetComponent(e, prefabLT);
+            }
+        }
+
+        points.Dispose();
+        activeList.Dispose();
+    }
+
+    private void SpawnCustomPoint(EntityManager em, PhysicsWorldSingleton physics, EntityCommandBuffer ecb,
+                                 RefRO<SpawnPointSpawner> spawner, Entity spawnerEntity,
+                                 Bounds2D bounds, float2 yBounds)
+    {
+        float margin = math.max(0f, spawner.ValueRO.margin);
+        float density = math.max(0.0001f, spawner.ValueRO.pointDensity);
+        float spacing = math.sqrt(1f / density); // Khoảng cách giữa các điểm trong lưới
 
         var filter = CollisionFilter.Default;
         float minX = bounds.Min.x + margin;
@@ -103,26 +203,25 @@ public partial struct SpawnPointSetupSystem : ISystem
         float maxZ = bounds.Max.y - margin;
         if (maxX <= minX || maxZ <= minZ) return;
 
-        float startX = math.floor(minX / spacing) * spacing;
-        float startZ = math.floor(minZ / spacing) * spacing;
+        // Tính toán điểm bắt đầu và số lượng điểm trên mỗi chiều
+        float startX = math.ceil(minX / spacing) * spacing; // Đảm bảo bắt đầu từ điểm lưới gần nhất
+        float startZ = math.ceil(minZ / spacing) * spacing;
         int nx = (int)math.floor((maxX - startX) / spacing) + 1;
         int nz = (int)math.floor((maxZ - startZ) / spacing) + 1;
 
         var prefabLT = em.GetComponentData<LocalTransform>(spawner.ValueRO.prefab);
 
+        // Tạo các điểm spawn trên lưới đều
         for (int ix = 0; ix < nx; ix++)
         {
             float x = startX + ix * spacing;
             for (int iz = 0; iz < nz; iz++)
             {
                 float z = startZ + iz * spacing;
-                uint seed = math.hash(new int3(ix, iz, spawnerEntity.Index));
-                var rand = Unity.Mathematics.Random.CreateFromIndex(seed);
-                float jx = (rand.NextFloat() - 0.5f) * jitterK * spacing;
-                float jz = (rand.NextFloat() - 0.5f) * jitterK * spacing;
 
-                float3 from = new float3(x + jx, yBounds.y + 0.5f, z + jz);
-                float3 to = new float3(x + jx, yBounds.x - 0.5f, z + jz);
+                // Tạo raycast từ trên xuống để tìm bề mặt hợp lệ
+                float3 from = new float3(x, yBounds.y + 0.5f, z);
+                float3 to = new float3(x, yBounds.x - 0.5f, z);
 
                 var input = new RaycastInput { Start = from, End = to, Filter = filter };
                 if (physics.CollisionWorld.CastRay(input, out var hit))
@@ -138,27 +237,6 @@ public partial struct SpawnPointSetupSystem : ISystem
                 }
             }
         }
-    }
-
-    private void SpawnCar(EntityManager em, PhysicsWorldSingleton physics, EntityCommandBuffer ecb,
-                          RefRO<SpawnPointSpawner> spawner, Entity spawnerEntity,
-                          Bounds2D bounds, float2 yBounds)
-    { 
-        // TODO: logic riêng cho car
-    }
-
-    private void SpawnHuman(EntityManager em, PhysicsWorldSingleton physics, EntityCommandBuffer ecb,
-                            RefRO<SpawnPointSpawner> spawner, Entity spawnerEntity,
-                            Bounds2D bounds, float2 yBounds)
-    {
-        // TODO: logic riêng cho human
-    }
-
-    private void SpawnCustomPoint(EntityManager em, PhysicsWorldSingleton physics, EntityCommandBuffer ecb,
-                                  RefRO<SpawnPointSpawner> spawner, Entity spawnerEntity,
-                                  Bounds2D bounds, float2 yBounds)
-    {
-        // TODO: logic riêng cho custom type
     }
 
     #endregion

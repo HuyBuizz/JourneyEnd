@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 187699434}
   - component: {fileID: 187699433}
   m_Layer: 0
-  m_Name: Spawner Flame Point
+  m_Name: Spawner FlamePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2689,7 +2689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2064244743
 Transform:
   m_ObjectHideFlags: 0

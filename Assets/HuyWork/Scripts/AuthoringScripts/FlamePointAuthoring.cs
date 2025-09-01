@@ -19,7 +19,7 @@ public struct Burning : IComponentData, IEnableableComponent {}
 public struct Neighbor : IBufferElementData
 {
     public Entity Entity;
-    public float  DistanceSq; // bình phương khoảng cách để so sánh nhanh
+    public float  DistanceSq;
 }
 
 // Cấu hình số láng giềng tối đa (K)
