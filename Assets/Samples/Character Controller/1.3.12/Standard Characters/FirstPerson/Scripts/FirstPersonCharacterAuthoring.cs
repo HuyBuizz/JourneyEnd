@@ -6,6 +6,7 @@ using Unity.CharacterController;
 using Unity.Physics;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using Unity.VisualScripting;
 
 [DisallowMultipleComponent]
 public class FirstPersonCharacterAuthoring : MonoBehaviour
@@ -24,9 +25,13 @@ public class FirstPersonCharacterAuthoring : MonoBehaviour
     public BasicStepAndSlopeHandlingParameters StepAndSlopeHandling = BasicStepAndSlopeHandlingParameters.GetDefault();
     public float MinViewAngle = -90f;
     public float MaxViewAngle = 90f;
-    ///////////////////////////////////////////////////////////////////
+    
+    [Header("InteractionConfigs")]
     public float InteractionReach = 3f;
-    ///////////////////////////////////////////////////////////////////
+    [Header("ClimbConfigs")]
+    public float ClimbSpeed = 3f;
+    [Header("CrawlConfigs")]
+    public float CrawlSpeed = 3f;    
 
     public class Baker : Baker<FirstPersonCharacterAuthoring>
     {
@@ -53,6 +58,8 @@ public class FirstPersonCharacterAuthoring : MonoBehaviour
                 ViewEntity = GetEntity(authoring.ViewEntity, TransformUsageFlags.Dynamic),
                 ViewPitchDegrees = 0f,
                 ViewLocalRotation = quaternion.identity,
+                ClimbSpeed = authoring.ClimbSpeed,
+                CrawlSpeed = authoring.CrawlSpeed
             });
             AddComponent(entity, new FirstPersonCharacterControl
             {
@@ -66,6 +73,12 @@ public class FirstPersonCharacterAuthoring : MonoBehaviour
             {
                 InteractableEntity = Entity.Null,
                 InteractionPoint = float3.zero,
+            });
+            AddComponent(entity, new FirstPersonCharacterState
+            {
+                IsClimbing = false,
+                ClimableObjectHeight = 0f,
+                IsCrawling = false
             });
         }
     }

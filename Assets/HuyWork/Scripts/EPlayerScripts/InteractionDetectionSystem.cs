@@ -16,8 +16,6 @@ public struct InteractionConfig : IComponentData
     public float ReachRange;
 }
 
-public struct EInteractable : IComponentData { }
-
 [BurstCompile]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateAfter(typeof(Unity.Physics.Systems.PhysicsSystemGroup))]
@@ -38,66 +36,42 @@ public partial struct InteractionDetectionSystem : ISystem
         foreach (var (interactionData, interactionConfig, playertransform)
                  in SystemAPI.Query<RefRW<InteractionData>, RefRO<InteractionConfig>, RefRO<LocalTransform>>())
         {
-            foreach (var (playerView, playerViewTansform)
-                     in SystemAPI.Query<RefRO<FirstPersonCharacterView>, RefRO<LocalTransform>>())
+            Entity mainEntityCameraEntity = SystemAPI.GetSingletonEntity<MainEntityCamera>();
+            LocalToWorld targetLocalToWorld = SystemAPI.GetComponent<LocalToWorld>(mainEntityCameraEntity);
+
+            var origin = playertransform.ValueRO.Position;
+            var direction = math.forward(targetLocalToWorld.Rotation);
+
+            var rayInput = new RaycastInput
             {
-                var origin = playertransform.ValueRO.Position;
-                var direction = math.forward(playerViewTansform.ValueRO.Rotation);
-
-                var rayInput = new RaycastInput
+                Start = origin + 1.4f * math.up(),
+                End = origin + direction * interactionConfig.ValueRO.ReachRange,
+                Filter = new CollisionFilter
                 {
-                    Start = origin,
-                    End = origin + direction * interactionConfig.ValueRO.ReachRange,
-                    Filter = new CollisionFilter
-                    {
-                        BelongsTo = (uint)PhysicsCategory.Character,
-                        CollidesWith = (uint)(PhysicsCategory.Interactable | PhysicsCategory.Ground),
-                        GroupIndex = 0
-                    }
-                };
-
-                // Debug thông số Raycast
-                UnityEngine.Debug.Log($"Raycast: Origin={origin}, Direction={direction}, ReachRange={interactionConfig.ValueRO.ReachRange}, Filter: BelongsTo={(uint)PhysicsCategory.Character}, CollidesWith={(uint)PhysicsCategory.Ground}");
-                UnityEngine.Debug.DrawRay(origin, direction * interactionConfig.ValueRO.ReachRange, UnityEngine.Color.red, 1f);
-
-                if (collisionWorld.CastRay(rayInput, out RaycastHit hit))
-                {
-                    var hitEntity = physicsWorld.Bodies[hit.RigidBodyIndex].Entity;
-                    interactionData.ValueRW.InteractableEntity = hitEntity;
-                    interactionData.ValueRW.InteractionPoint = hit.Position;
-
-                    // Lấy CollisionFilter của entity bị va chạm
-                    string categoryName = "Unknown";
-                    uint belongsTo = 0;
-                    if (SystemAPI.HasComponent<Unity.Physics.PhysicsCollider>(hitEntity))
-                    {
-                        var pc = SystemAPI.GetComponent<Unity.Physics.PhysicsCollider>(hitEntity);
-                        if (pc.Value.IsCreated)
-                        {
-                            // Lấy filter theo API mới (ổn định hơn giữa các version)
-                            Unity.Physics.CollisionFilter filter = pc.Value.Value.GetCollisionFilter(Unity.Physics.ColliderKey.Empty);
-                            belongsTo = filter.BelongsTo;
-                        }
-                    }
-                    UnityEngine.Debug.Log($"Hit Entity: {hitEntity}, Position: {hit.Position}, Category: {categoryName} (BelongsTo: {belongsTo})");
+                    BelongsTo = (uint)PhysicsCategory.Character,
+                    CollidesWith = (uint)(PhysicsCategory.Interactable),
+                    GroupIndex = 0
                 }
-                else
-                {
-                    interactionData.ValueRW.InteractableEntity = Entity.Null;
-                    interactionData.ValueRW.InteractionPoint = float3.zero;
-                    UnityEngine.Debug.Log("No Raycast hit detected.");
-                }
+            };
+
+            // Debug thông số Raycast
+            // UnityEngine.Debug.Log($"Raycast: Origin={origin}, Direction={direction}, ReachRange={interactionConfig.ValueRO.ReachRange}, Filter: BelongsTo={(uint)PhysicsCategory.Character}, CollidesWith={(uint)PhysicsCategory.Ground}");
+            UnityEngine.Debug.DrawRay(origin + 1.4f * math.up(), direction * interactionConfig.ValueRO.ReachRange, UnityEngine.Color.red, 1f);
+
+            if (collisionWorld.CastRay(rayInput, out RaycastHit hit))
+            {
+                var hitEntity = physicsWorld.Bodies[hit.RigidBodyIndex].Entity;
+                interactionData.ValueRW.InteractableEntity = hitEntity;
+                interactionData.ValueRW.InteractionPoint = hit.Position;
+
+                KeyHintContext.Instance?.SetFlag("hasObjToInteract", true);
+            }
+            else
+            {
+                interactionData.ValueRW.InteractableEntity = Entity.Null;
+                interactionData.ValueRW.InteractionPoint = float3.zero;
+                KeyHintContext.Instance?.SetFlag("hasObjToInteract", false);
             }
         }
-    }
-
-    // Hàm chuyển đổi bitmask thành tên danh mục
-    private static string GetCategoryName(uint belongsTo)
-    {
-        if (belongsTo == 0) return "None";
-        if ((belongsTo & (uint)PhysicsCategory.Character) != 0) return "Character";
-        if ((belongsTo & (uint)PhysicsCategory.Interactable) != 0) return "Interactable";
-        if ((belongsTo & (uint)PhysicsCategory.Ground) != 0) return "Ground";
-        return "Unknown";
     }
 }

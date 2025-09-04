@@ -43,21 +43,47 @@ public partial class FirstPersonPlayerInputsSystem : SystemBase
                 continue;
             var characterControl = SystemAPI.GetComponent<FirstPersonCharacterControl>(player.ControlledCharacter);
 
-            playerInputs.ValueRW.MoveInput = new float2
+            float2 moveInput = float2.zero;
+
+            var mappingBuffer = SystemAPI.GetSingletonBuffer<KeyActionMappingData>();
+
+            foreach (var keyAction in mappingBuffer)
             {
-                x = (Keyboard.current.dKey.isPressed ? 1f : 0f) + (Keyboard.current.aKey.isPressed ? -1f : 0f),
-                y = (Keyboard.current.wKey.isPressed ? 1f : 0f) + (Keyboard.current.sKey.isPressed ? -1f : 0f),
-            };
+                if (Keyboard.current[keyAction.KeyCode].isPressed)
+                {
+                    switch (keyAction.Action.ToString().ToLower())
+                    {
+                        case "move_forward":
+                            moveInput.y += 1f;
+                            break;
+                        case "move_backward":
+                            moveInput.y -= 1f;
+                            break;
+                        case "move_right":
+                            moveInput.x += 1f;
+                            break;
+                        case "move_left":
+                            moveInput.x -= 1f;
+                            break;
+                        case "jump":
+                            playerInputs.ValueRW.JumpPressed.Set(tick);
+                            break;
+                        case "interact":
+                            playerInputs.ValueRW.InteractPressed.Set(tick);
+                            break;
+                        case "crawl":
+                            playerInputs.ValueRW.CrawlPressed.Set(tick);
+                            break;
+                    }
+                }
+            }
+
+            playerInputs.ValueRW.MoveInput = moveInput;
 
             // Only process camera look input if cursorLocked is true
             if (characterControl.CursorLocked)
             {
                 playerInputs.ValueRW.LookInput = Mouse.current.delta.ReadValue() * player.LookInputSensitivity;
-            }
-
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            {
-                playerInputs.ValueRW.JumpPressed.Set(tick);
             }
 
             // ESC: hiện/ẩn cursor
@@ -70,16 +96,11 @@ public partial class FirstPersonPlayerInputsSystem : SystemBase
             }
 
             // Click chuột trái: lock lại
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (Mouse.current.rightButton.wasPressedThisFrame)
             {
                 characterControl.CursorLocked = true;
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
-            }
-            
-            if (Keyboard.current.fKey.wasPressedThisFrame)
-            {
-                
             }
 
             SystemAPI.SetComponent(player.ControlledCharacter, characterControl);
@@ -147,6 +168,9 @@ public partial struct FirstPersonPlayerFixedStepControlSystem : ISystem
 
                 quaternion characterRotation = SystemAPI.GetComponent<LocalTransform>(player.ControlledCharacter).Rotation;
 
+                // Synce MoveInput
+                characterControl.MoveInput = playerInputs.MoveInput;
+
                 // Move
                 float3 characterForward = MathUtilities.GetForwardFromRotation(characterRotation);
                 float3 characterRight = MathUtilities.GetRightFromRotation(characterRotation);
@@ -155,6 +179,12 @@ public partial struct FirstPersonPlayerFixedStepControlSystem : ISystem
 
                 // Jump
                 characterControl.Jump = playerInputs.JumpPressed.IsSet(tick);
+
+                // Interact
+                characterControl.Interact = playerInputs.InteractPressed.IsSet(tick);
+
+                // Crawl
+                characterControl.Crawl = playerInputs.CrawlPressed.IsSet(tick);
 
                 SystemAPI.SetComponent(player.ControlledCharacter, characterControl);
             }

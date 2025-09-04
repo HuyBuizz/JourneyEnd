@@ -8,7 +8,10 @@ public class MissionTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            MissionManager.Instance.TryProgressStep(triggerType);
+            if (MissionManager.Instance != null)
+            {
+                MissionManager.Instance.TryProgressStep(triggerType);
+            }
         }
     }
 }

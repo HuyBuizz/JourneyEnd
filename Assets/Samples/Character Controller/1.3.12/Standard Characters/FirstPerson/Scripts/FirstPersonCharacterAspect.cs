@@ -1,4 +1,3 @@
-#pragma warning disable CS0618
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -17,17 +16,12 @@ using UnityEngine;
 
 public struct FirstPersonCharacterUpdateContext
 {
-    // Here, you may add additional global data for your character updates, such as ComponentLookups, Singletons, NativeCollections, etc...
-    // The data you add here will be accessible in your character updates and all of your character "callbacks".
-
     public void OnSystemCreate(ref SystemState state)
     {
-        // Get lookups
     }
 
     public void OnSystemUpdate(ref SystemState state)
     {
-        // Update lookups
     }
 }
 
@@ -36,6 +30,9 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
     public readonly KinematicCharacterAspect CharacterAspect;
     public readonly RefRW<FirstPersonCharacterComponent> CharacterComponent;
     public readonly RefRW<FirstPersonCharacterControl> CharacterControl;
+    public readonly RefRW<FirstPersonCharacterState> CharacterState;
+    public readonly RefRW<PhysicsCollider> physicsCollider;
+    public readonly RefRW<CharacterColliderVariants> characterColliderVariants;
 
     public void PhysicsUpdate(ref FirstPersonCharacterUpdateContext context, ref KinematicCharacterUpdateContext baseContext)
     {
@@ -43,15 +40,12 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
         ref KinematicCharacterBody characterBody = ref CharacterAspect.CharacterBody.ValueRW;
         ref float3 characterPosition = ref CharacterAspect.LocalTransform.ValueRW.Position;
 
-        // First phase of default character update
         CharacterAspect.Update_Initialize(in this, ref context, ref baseContext, ref characterBody, baseContext.Time.DeltaTime);
         CharacterAspect.Update_ParentMovement(in this, ref context, ref baseContext, ref characterBody, ref characterPosition, characterBody.WasGroundedBeforeCharacterUpdate);
         CharacterAspect.Update_Grounding(in this, ref context, ref baseContext, ref characterBody, ref characterPosition);
 
-        // Update desired character velocity after grounding was detected, but before doing additional processing that depends on velocity
         HandleVelocityControl(ref context, ref baseContext);
 
-        // Second phase of default character update
         CharacterAspect.Update_PreventGroundingFromFutureSlopeChange(in this, ref context, ref baseContext, ref characterBody, in characterComponent.StepAndSlopeHandling);
         CharacterAspect.Update_GroundPushing(in this, ref context, ref baseContext, characterComponent.Gravity);
         CharacterAspect.Update_MovementAndDecollisions(in this, ref context, ref baseContext, ref characterBody, ref characterPosition);
@@ -66,47 +60,153 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
         ref KinematicCharacterBody characterBody = ref CharacterAspect.CharacterBody.ValueRW;
         ref FirstPersonCharacterComponent characterComponent = ref CharacterComponent.ValueRW;
         ref FirstPersonCharacterControl characterControl = ref CharacterControl.ValueRW;
+        ref FirstPersonCharacterState characterState = ref CharacterState.ValueRW;
+        ref PhysicsCollider physicsCollider = ref this.physicsCollider.ValueRW;
+        ref CharacterColliderVariants characterColliderVariants = ref this.characterColliderVariants.ValueRW;
 
-        // Rotate move input and velocity to take into account parent rotation
+        // Change collider when switching character physicsstates
+        if (characterState.IsCrawling && !characterState.CrawlColliderShrunk)
+        {
+            physicsCollider.Value = characterColliderVariants.Crawling;
+            characterState.CrawlColliderShrunk = true;
+        }
+        else if (!characterState.IsCrawling && characterState.CrawlColliderShrunk)
+        {
+            physicsCollider.Value = characterColliderVariants.Standing;
+            characterState.CrawlColliderShrunk = false;
+        }
+
         if (characterBody.ParentEntity != Entity.Null)
         {
             characterControl.MoveVector = math.rotate(characterBody.RotationFromParent, characterControl.MoveVector);
             characterBody.RelativeVelocity = math.rotate(characterBody.RotationFromParent, characterBody.RelativeVelocity);
         }
 
-        if (characterBody.IsGrounded)
+        if (characterState.IsClimbing)
         {
-            // Move on ground
-            float3 targetVelocity = characterControl.MoveVector * characterComponent.GroundMaxSpeed;
-            CharacterControlUtilities.StandardGroundMove_Interpolated(ref characterBody.RelativeVelocity, targetVelocity, characterComponent.GroundedMovementSharpness, deltaTime, characterBody.GroundingUp, characterBody.GroundHit.Normal);
+            // Exit climbing if grounded
+            if (characterBody.IsGrounded)
+            {
+                characterState.IsClimbing = false;
+                characterState.ClimableObjectHeight = 0f;
+                return;
+            }
 
-            // Jump
+            // Exit climbing if reaching the top
+            float currentY = CharacterAspect.LocalTransform.ValueRO.Position.y;
+            if (characterState.ClimableObjectHeight > 0f &&
+                currentY >= characterState.ClimableObjectHeight + 1f)
+            {
+                characterState.IsClimbing = false;
+                characterState.ClimableObjectHeight = 0f;
+                characterBody.RelativeVelocity = float3.zero; // Reset velocity
+                return;
+            }
+
+            // Get vertical input (W/S)
+            float climbInput = characterControl.MoveInput.y;
+
+            // Climbing velocity: only along Up axis
+            characterBody.RelativeVelocity = math.up() * (climbInput * characterComponent.ClimbSpeed);
+
+            // Exit climbing when jumping
             if (characterControl.Jump)
             {
-                CharacterControlUtilities.StandardJump(ref characterBody, characterBody.GroundingUp * characterComponent.JumpSpeed, true, characterBody.GroundingUp);
+                characterState.IsClimbing = false;
+                characterState.ClimableObjectHeight = 0f;
+
+                CharacterControlUtilities.StandardJump(
+                    ref characterBody,
+                    math.up() * characterComponent.JumpSpeed,
+                    true,
+                    math.up()
+                );
+                return;
+            }
+
+            return;
+        }
+
+        if (characterBody.IsGrounded)
+        {
+            if (characterState.IsCrawling)
+            {
+                // Use crawl speed instead of normal ground speed
+                float3 targetVelocity = characterControl.MoveVector * characterComponent.CrawlSpeed;
+                CharacterControlUtilities.StandardGroundMove_Interpolated(
+                    ref characterBody.RelativeVelocity,
+                    targetVelocity,
+                    characterComponent.GroundedMovementSharpness,
+                    deltaTime,
+                    characterBody.GroundingUp,
+                    characterBody.GroundHit.Normal);
+
+                // Exit crawling if jump is triggered
+                if (characterControl.Jump)
+                {
+                    characterState.IsCrawling = false;
+                    if (characterState.CrawlColliderShrunk)
+                    {
+                        physicsCollider.Value = characterColliderVariants.Standing;
+                        characterState.CrawlColliderShrunk = false;
+                    }
+                }
+            }
+            else
+            {
+                float3 targetVelocity = characterControl.MoveVector * characterComponent.GroundMaxSpeed;
+                CharacterControlUtilities.StandardGroundMove_Interpolated(
+                    ref characterBody.RelativeVelocity,
+                    targetVelocity,
+                    characterComponent.GroundedMovementSharpness,
+                    deltaTime,
+                    characterBody.GroundingUp,
+                    characterBody.GroundHit.Normal);
+
+                if (characterControl.Jump)
+                {
+                    CharacterControlUtilities.StandardJump(
+                        ref characterBody,
+                        characterBody.GroundingUp * characterComponent.JumpSpeed,
+                        true,
+                        characterBody.GroundingUp);
+                }
             }
         }
         else
         {
-            // Move in air
             float3 airAcceleration = characterControl.MoveVector * characterComponent.AirAcceleration;
             if (math.lengthsq(airAcceleration) > 0f)
             {
                 float3 tmpVelocity = characterBody.RelativeVelocity;
-                CharacterControlUtilities.StandardAirMove(ref characterBody.RelativeVelocity, airAcceleration, characterComponent.AirMaxSpeed, characterBody.GroundingUp, deltaTime, false);
+                CharacterControlUtilities.StandardAirMove(
+                    ref characterBody.RelativeVelocity,
+                    airAcceleration,
+                    characterComponent.AirMaxSpeed,
+                    characterBody.GroundingUp,
+                    deltaTime,
+                    false);
 
-                // Cancel air acceleration from input if we would hit a non-grounded surface (prevents air-climbing slopes at high air accelerations)
-                if (characterComponent.PreventAirAccelerationAgainstUngroundedHits && CharacterAspect.MovementWouldHitNonGroundedObstruction(in this, ref context, ref baseContext, characterBody.RelativeVelocity * deltaTime, out ColliderCastHit hit))
+                if (characterComponent.PreventAirAccelerationAgainstUngroundedHits &&
+                    CharacterAspect.MovementWouldHitNonGroundedObstruction(
+                        in this,
+                        ref context,
+                        ref baseContext,
+                        characterBody.RelativeVelocity * deltaTime,
+                        out ColliderCastHit hit))
                 {
                     characterBody.RelativeVelocity = tmpVelocity;
                 }
             }
 
-            // Gravity
-            CharacterControlUtilities.AccelerateVelocity(ref characterBody.RelativeVelocity, characterComponent.Gravity, deltaTime);
-
-            // Drag
-            CharacterControlUtilities.ApplyDragToVelocity(ref characterBody.RelativeVelocity, deltaTime, characterComponent.AirDrag);
+            CharacterControlUtilities.AccelerateVelocity(
+                ref characterBody.RelativeVelocity,
+                characterComponent.Gravity,
+                deltaTime);
+            CharacterControlUtilities.ApplyDragToVelocity(
+                ref characterBody.RelativeVelocity,
+                deltaTime,
+                characterComponent.AirDrag);
         }
     }
 
@@ -117,11 +217,12 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
         ref FirstPersonCharacterControl characterControl = ref CharacterControl.ValueRW;
         ref quaternion characterRotation = ref CharacterAspect.LocalTransform.ValueRW.Rotation;
 
-        // Add rotation from parent body to the character rotation
-        // (this is for allowing a rotating moving platform to rotate your character as well, and handle interpolation properly)
-        KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(ref characterRotation, characterBody.RotationFromParent, baseContext.Time.DeltaTime, characterBody.LastPhysicsUpdateDeltaTime);
+        KinematicCharacterUtilities.AddVariableRateRotationFromFixedRateRotation(
+            ref characterRotation,
+            characterBody.RotationFromParent,
+            baseContext.Time.DeltaTime,
+            characterBody.LastPhysicsUpdateDeltaTime);
 
-        // Compute character & view rotations from rotation input
         FirstPersonCharacterUtilities.ComputeFinalRotationsFromRotationDelta(
             ref characterRotation,
             ref characterComponent.ViewPitchDegrees,
@@ -133,32 +234,20 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
             out characterComponent.ViewLocalRotation);
     }
 
-    #region Character Processor Callbacks
-    public void UpdateGroundingUp(
-        ref FirstPersonCharacterUpdateContext context,
-        ref KinematicCharacterUpdateContext baseContext)
+    public void UpdateGroundingUp(ref FirstPersonCharacterUpdateContext context, ref KinematicCharacterUpdateContext baseContext)
     {
         ref KinematicCharacterBody characterBody = ref CharacterAspect.CharacterBody.ValueRW;
-
         CharacterAspect.Default_UpdateGroundingUp(ref characterBody);
     }
 
-    public bool CanCollideWithHit(
-        ref FirstPersonCharacterUpdateContext context,
-        ref KinematicCharacterUpdateContext baseContext,
-        in BasicHit hit)
+    public bool CanCollideWithHit(ref FirstPersonCharacterUpdateContext context, ref KinematicCharacterUpdateContext baseContext, in BasicHit hit)
     {
         return PhysicsUtilities.IsCollidable(hit.Material);
     }
 
-    public bool IsGroundedOnHit(
-        ref FirstPersonCharacterUpdateContext context,
-        ref KinematicCharacterUpdateContext baseContext,
-        in BasicHit hit,
-        int groundingEvaluationType)
+    public bool IsGroundedOnHit(ref FirstPersonCharacterUpdateContext context, ref KinematicCharacterUpdateContext baseContext, in BasicHit hit, int groundingEvaluationType)
     {
         FirstPersonCharacterComponent characterComponent = CharacterComponent.ValueRO;
-
         return CharacterAspect.Default_IsGroundedOnHit(
             in this,
             ref context,
@@ -169,13 +258,13 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
     }
 
     public void OnMovementHit(
-            ref FirstPersonCharacterUpdateContext context,
-            ref KinematicCharacterUpdateContext baseContext,
-            ref KinematicCharacterHit hit,
-            ref float3 remainingMovementDirection,
-            ref float remainingMovementLength,
-            float3 originalVelocityDirection,
-            float hitDistance)
+        ref FirstPersonCharacterUpdateContext context,
+        ref KinematicCharacterUpdateContext baseContext,
+        ref KinematicCharacterHit hit,
+        ref float3 remainingMovementDirection,
+        ref float remainingMovementLength,
+        float3 originalVelocityDirection,
+        float hitDistance)
     {
         ref KinematicCharacterBody characterBody = ref CharacterAspect.CharacterBody.ValueRW;
         ref float3 characterPosition = ref CharacterAspect.LocalTransform.ValueRW.Position;
@@ -204,7 +293,6 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
         ref PhysicsMass otherMass,
         BasicHit hit)
     {
-        // Custom mass overrides
     }
 
     public void ProjectVelocityOnHits(
@@ -217,7 +305,6 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
         float3 originalVelocityDirection)
     {
         FirstPersonCharacterComponent characterComponent = CharacterComponent.ValueRO;
-
         CharacterAspect.Default_ProjectVelocityOnHits(
             ref velocity,
             ref characterIsGrounded,
@@ -226,5 +313,4 @@ public readonly partial struct FirstPersonCharacterAspect : IAspect, IKinematicC
             originalVelocityDirection,
             characterComponent.StepAndSlopeHandling.ConstrainVelocityToGroundPlane);
     }
-    #endregion
 }

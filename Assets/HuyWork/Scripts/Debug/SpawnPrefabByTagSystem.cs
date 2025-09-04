@@ -3,78 +3,99 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Burst;
-using Unity.VisualScripting;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(SpawnPointNeighborBuildSystem))]
-public partial struct SpawnPrefabSystem : ISystem
+public partial struct SpawnPrefabByTagSystem : ISystem
 {
-    public bool hasSpawned; // đảm bảo spawn 1 lần
-
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<SpawnPrefabSingleton>();
-        hasSpawned = false;
+        state.RequireForUpdate<SpawnPointNeighborBuildSystemDone>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        if (hasSpawned) return;
+        if (SystemAPI.HasSingleton<SpawnPrefabByTagSystemDone>()) return;
 
         var em = state.EntityManager;
         var singleton = SystemAPI.GetSingleton<SpawnPrefabSingleton>();
 
-        // Spawn cho SpawnPointTag0
-        var q0 = SystemAPI.QueryBuilder()
-                    .WithAll<SpawnPointTag0, LocalTransform>()
-                    .Build();
-        var entities0 = q0.ToEntityArray(Allocator.Temp);
-        var transforms0 = q0.ToComponentDataArray<LocalTransform>(Allocator.Temp);
-
-        for (int i = 0; i < entities0.Length; i++)
+        // ==== Spawn SpawnPointTag0 ====
         {
-            var e = em.Instantiate(singleton.prefab0);
-            em.SetComponentData(e, new LocalTransform { Position = transforms0[i].Position, Rotation = transforms0[i].Rotation, Scale = transforms0[i].Scale });
+            var q0 = SystemAPI.QueryBuilder()
+                        .WithAll<SpawnPointTag0, LocalTransform>()
+                        .Build();
+            var entities0 = q0.ToEntityArray(Allocator.Temp);
+            var transforms0 = q0.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            UnityEngine.Debug.Log($"Spawn SpawnPointTag0: {entities0.Length}");
+            for (int i = 0; i < entities0.Length; i++)
+            {
+                var e = em.Instantiate(singleton.prefab0);
+                em.SetComponentData(e, transforms0[i]);
+            }
+            entities0.Dispose();
+            transforms0.Dispose();
         }
 
-        entities0.Dispose();
-        transforms0.Dispose();
-
-        // Spawn cho SpawnPointTag3x3
-        var q3 = SystemAPI.QueryBuilder()
-                    .WithAll<SpawnPointTag3x3, LocalTransform>()
-                    .Build();
-        var entities3 = q3.ToEntityArray(Allocator.Temp);
-        var transforms3 = q3.ToComponentDataArray<LocalTransform>(Allocator.Temp);
-
-        for (int i = 0; i < entities3.Length; i++)
+        // ==== Spawn SpawnPointTag3x3 ====
         {
-            var e = em.Instantiate(singleton.prefab3x3);
-            em.SetComponentData(e, new LocalTransform { Position = transforms3[i].Position, Rotation = transforms3[i].Rotation, Scale = transforms3[i].Scale });
+            var q3 = SystemAPI.QueryBuilder()
+                        .WithAll<SpawnPointTag3x3, LocalTransform>()
+                        .Build();
+            var entities3 = q3.ToEntityArray(Allocator.Temp);
+            var transforms3 = q3.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            UnityEngine.Debug.Log($"Spawn SpawnPointTag3x3: {entities3.Length}");
+            for (int i = 0; i < entities3.Length; i++)
+            {
+                var e = em.Instantiate(singleton.prefab3x3);
+                em.SetComponentData(e, transforms3[i]);
+            }
+            entities3.Dispose();
+            transforms3.Dispose();
         }
 
-        entities3.Dispose();
-        transforms3.Dispose();
-
-        // Spawn cho SpawnPointTag5x5
-        var q5 = SystemAPI.QueryBuilder()
-                    .WithAll<SpawnPointTag5x5, LocalTransform>()
-                    .Build();
-        var entities5 = q5.ToEntityArray(Allocator.Temp);
-        var transforms5 = q5.ToComponentDataArray<LocalTransform>(Allocator.Temp);
-
-        for (int i = 0; i < entities5.Length; i++)
+        // ==== Spawn SpawnPointTag5x5 ====
         {
-            var e = em.Instantiate(singleton.prefab5x5);
-            em.SetComponentData(e, new LocalTransform { Position = transforms5[i].Position, Rotation = transforms5[i].Rotation, Scale = transforms5[i].Scale });
+            var q5 = SystemAPI.QueryBuilder()
+                        .WithAll<SpawnPointTag5x5, LocalTransform>()
+                        .Build();
+            var entities5 = q5.ToEntityArray(Allocator.Temp);
+            var transforms5 = q5.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            UnityEngine.Debug.Log($"Spawn SpawnPointTag5x5: {entities5.Length}");
+            for (int i = 0; i < entities5.Length; i++)
+            {
+                var e = em.Instantiate(singleton.prefab5x5);
+                em.SetComponentData(e, transforms5[i]);
+            }
+            entities5.Dispose();
+            transforms5.Dispose();
         }
 
-        entities5.Dispose();
-        transforms5.Dispose();
+        // ==== Spawn SpawnPointTag7x7 ====
+        {
+            var q7 = SystemAPI.QueryBuilder()
+                        .WithAll<SpawnPointTag7x7, LocalTransform>()
+                        .Build();
+            var entities7 = q7.ToEntityArray(Allocator.Temp);
+            var transforms7 = q7.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            UnityEngine.Debug.Log($"Spawn SpawnPointTag7x7: {entities7.Length}");
+            for (int i = 0; i < entities7.Length; i++)
+            {
+                var e = em.Instantiate(singleton.prefab7x7);
+                em.SetComponentData(e, transforms7[i]);
+            }
+            entities7.Dispose();
+            transforms7.Dispose();
+        }
 
-        hasSpawned = true; // đánh dấu đã spawn xong
+        if (!SystemAPI.HasSingleton<SpawnPrefabByTagSystemDone>())
+        {
+            state.EntityManager.CreateEntity(typeof(SpawnPrefabByTagSystemDone));
+        }
     }
 }
+
+public struct SpawnPrefabByTagSystemDone : IComponentData { }

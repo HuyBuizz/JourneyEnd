@@ -24,16 +24,21 @@ public struct FirstPersonCharacterComponent : IComponentData
     public Entity ViewEntity;
     public float ViewPitchDegrees;
     public quaternion ViewLocalRotation;
+
+    public float ClimbSpeed;
+    public float CrawlSpeed;
 }
 
 [Serializable]
 public struct FirstPersonCharacterControl : IComponentData
 {
     public float3 MoveVector;
+    public float2 MoveInput;
     public float2 LookDegreesDelta;
     public bool Jump;
     public bool CursorLocked;
     public bool Interact;
+    public bool Crawl;
 }
 
 [Serializable]
@@ -41,3 +46,20 @@ public struct FirstPersonCharacterView : IComponentData
 {
     public Entity CharacterEntity;
 }
+
+[Serializable]
+public struct FirstPersonCharacterState : IComponentData
+{
+    public bool IsClimbing;
+    public bool IsCrawling;
+    public float ClimableObjectHeight;
+    public bool CrawlColliderShrunk;
+}
+
+public struct CharacterColliderVariants : ICleanupComponentData
+{
+    public BlobAssetReference<Unity.Physics.Collider> Standing; // asset gốc (KHÔNG dispose)
+    public BlobAssetReference<Unity.Physics.Collider> Crawling; // do ta tạo (PHẢI dispose)
+    public byte HasCrawling;
+}
+

@@ -2,11 +2,16 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
+public struct SpawnPoint : IComponentData { }
+public struct SpawnPointOccupied : IComponentData, IEnableableComponent { }
+public struct SpawnPointSettings : IComponentData
+{
+    public int maxNeighbors;
+}
+
 public class SpawnPointAuthoring : MonoBehaviour
 {
-    [Header("FlamePoint")]
-    public float detectRadius = 2.5f;
-    public bool isOcupied;
+    public bool isOcupied = false;
     [Header("Neighbors")]
     [Range(1, 32)] public int maxNeighbors = 8;
 
@@ -15,26 +20,15 @@ public class SpawnPointAuthoring : MonoBehaviour
         public override void Bake(SpawnPointAuthoring a)
         {
             var e = GetEntity(TransformUsageFlags.Dynamic);
-            AddComponent(e, new SpawnPoint
-            {
-                detectRadius = math.max(0f, a.detectRadius),
-                isOcupied = a.isOcupied
-            });
+            AddComponent(e, new SpawnPoint { });
             AddComponent(e, new SpawnPointSettings
             {
                 maxNeighbors = math.clamp(a.maxNeighbors, 1, 32)
             });
             AddBuffer<Neighbor>(e);
+            AddComponent<SpawnPointOccupied>(e);
+            SetComponentEnabled<SpawnPointOccupied>(e, a.isOcupied);
         }
     }
 }
 
-public struct SpawnPoint : IComponentData
-{
-    public float detectRadius;
-    public bool isOcupied;
-}
-public struct SpawnPointSettings : IComponentData
-{
-    public int maxNeighbors;
-}

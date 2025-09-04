@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
+
 
 [System.Serializable]
 public class MissionChain
@@ -8,12 +9,14 @@ public class MissionChain
     public List<MissionStep> steps = new List<MissionStep>();
     public int currentStepIndex = 0;
 
+
     public MissionStep GetCurrentStep()
     {
         if (currentStepIndex < steps.Count)
             return steps[currentStepIndex];
         return null;
     }
+
 
     public void CompleteCurrentStep()
     {
@@ -23,6 +26,7 @@ public class MissionChain
             currentStepIndex++;
         }
     }
+
 
     public bool IsFinished()
     {
