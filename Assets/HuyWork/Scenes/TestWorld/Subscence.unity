@@ -112685,54 +112685,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 650870784}
   m_Mesh: {fileID: 4300002, guid: 6abd91808b5cc3c4392a9391849a70b8, type: 3}
---- !u!1 &651177107
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 651177109}
-  - component: {fileID: 651177108}
-  m_Layer: 0
-  m_Name: ComboPrefabSingleton
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &651177108
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 651177107}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d0807bd7ef910a44878afda1a07e6b6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpawnComboPrefabAuthoring
-  prefab0: {fileID: 0}
-  prefab3x3: {fileID: 5126757623512994720, guid: de1ff92bf15d4744a8bfa3c13bd4f19e, type: 3}
-  prefab5x5: {fileID: 8770488656498421237, guid: c91db8d57f75c9342becb78b9df4c04e, type: 3}
-  prefab7x7: {fileID: 8439675114219962567, guid: 9e1e3d60f6f874844894d8bcac79532f, type: 3}
---- !u!4 &651177109
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 651177107}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &651866137
 GameObject:
   m_ObjectHideFlags: 0
@@ -232170,7 +232122,7 @@ MonoBehaviour:
   SpawnPointPrefab: {fileID: 4153739407505798098, guid: 4bf1950fe1222204db1ab92f6606b561, type: 3}
   spawnerType: 1
   margin: 1
-  pointDensity: 0.2
+  pointDensity: 1
   chisophuctap1: 0
   chisophuctap2: 0
   chisophuctap3: 0
@@ -347009,54 +346961,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1970656055}
   m_Mesh: {fileID: 4300002, guid: ae55ec5edbd9ef940828a318e1f13d67, type: 3}
---- !u!1 &1970774534
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1970774536}
-  - component: {fileID: 1970774535}
-  m_Layer: 0
-  m_Name: SpawnPrefabSingleton_Debug
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1970774535
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1970774534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73cc7a61f1caef34a9e239dbcb376526, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpawnPrefabAuthoring
-  prefab0: {fileID: 2432417743014236271, guid: 5450d9dd74289c5408f0056adee7e4b8, type: 3}
-  prefab3x3: {fileID: 7430917918775186167, guid: 9254f2a3ac24605449d46616a886ac14, type: 3}
-  prefab5x5: {fileID: 1786652920961635596, guid: a6f5c0cee73701b48821b2bb8ba2082c, type: 3}
-  prefab7x7: {fileID: 3166738992051767347, guid: e884f7fe85987404aa97b9b1c35eb272, type: 3}
---- !u!4 &1970774536
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1970774534}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1970912822
 GameObject:
   m_ObjectHideFlags: 0
@@ -377775,8 +377679,6 @@ SceneRoots:
   - {fileID: 1329861100}
   - {fileID: 1312146827}
   - {fileID: 2096137225}
-  - {fileID: 1970774536}
-  - {fileID: 651177109}
   - {fileID: 486231230}
   - {fileID: 1031550956}
   - {fileID: 1252698316}
