@@ -7,21 +7,16 @@ using Unity.Transforms;
 [BurstCompile]
 public partial struct FlamePointNeighborBuildSystem : ISystem
 {
-    public bool hasRun; // Biến cờ kiểm tra hệ thống đã chạy chưa
-
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<FlamePoint>();
-        state.RequireForUpdate<FlameNeighborSettings>();
-        state.RequireForUpdate<Neighbor>();
-        hasRun = false; // Khởi tạo cờ
+        state.RequireForUpdate<PointSetupSystemDone>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        if (hasRun) return; // Nếu đã chạy rồi, thoát
+        if (SystemAPI.HasSingleton<FlamePointNeighborBuildSystemDone>()) return;
 
         var em = state.EntityManager;
 
@@ -95,7 +90,11 @@ public partial struct FlamePointNeighborBuildSystem : ISystem
         transforms.Dispose();
         entities.Dispose();
 
-        hasRun = true; // Đánh dấu đã chạy xong
+        if (!SystemAPI.HasSingleton<FlamePointNeighborBuildSystemDone>())
+        {
+            em.CreateEntity(typeof(FlamePointNeighborBuildSystemDone));
+        }
+
     }
 }
-
+public struct FlamePointNeighborBuildSystemDone : IComponentData { }

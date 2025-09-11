@@ -21,6 +21,8 @@ public partial struct PointSetupSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        if (SystemAPI.HasSingleton<PointSetupSystemDone>()) return;
+
         var em = state.EntityManager;
         var physics = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
         var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -81,6 +83,11 @@ public partial struct PointSetupSystem : ISystem
 
         ecb.Playback(em);
         ecb.Dispose();
+
+        if (!SystemAPI.HasSingleton<PointSetupSystemDone>())
+        {
+            em.CreateEntity(typeof(PointSetupSystemDone));
+        }
     }
 
     #region --- Logic spawn riêng từng type ---
@@ -241,3 +248,5 @@ public partial struct PointSetupSystem : ISystem
 
     #endregion
 }
+
+public struct PointSetupSystemDone : IComponentData { }

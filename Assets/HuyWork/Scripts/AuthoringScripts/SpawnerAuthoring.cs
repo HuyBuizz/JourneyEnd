@@ -15,11 +15,7 @@ public class SpawnerAuthoring : MonoBehaviour
     [Header("Spawn Settings")]
     public float margin = 1f;
     public float pointDensity = 0.2f;
-    public float chisophuctap1 = 0f;
-    public float chisophuctap2 = 0f;
-    public float chisophuctap3 = 0f;
     
-
     class FlamePointFloorSpawnAuthoringBaker : Baker<SpawnerAuthoring>
     {
         public override void Bake(SpawnerAuthoring authoring)
