@@ -8,6 +8,7 @@ TagManager:
   - Character
   - FlamePoint
   - Ladder
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -19,7 +20,7 @@ TagManager:
   - FlamePoint
   - LadderLayer
   - Ground
-  - 
+  - Marker
   - 
   - 
   - 
