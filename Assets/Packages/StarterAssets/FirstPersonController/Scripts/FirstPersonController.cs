@@ -191,20 +191,38 @@ namespace StarterAssets
 
         private void Move()
         {
-            // if the player is climbing, do not move
-            if (GetComponent<PlayerState>().isPLayerClimbing) return;
+            var playerState = GetComponent<PlayerState>();
 
-            // set target speed based on move speed, sprint speed and if sprint is pressed
-            float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+            // Nếu đang leo, chỉ cho phép đi lên hoặc xuống
+            if (playerState.isPlayerClimbing)
+            {
+                float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
-            // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
+                // Nếu không có input lên/xuống thì tốc độ bằng 0
+                float verticalInput = _input.move.y; // sử dụng trục y của Vector2 input
+                if (verticalInput == 0f)
+                    targetSpeed = 0f;
 
-            // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is no input, set the target speed to 0
+                // Lerp tốc độ để mềm mại
+                _speed = Mathf.Lerp(_speed, targetSpeed * Mathf.Abs(verticalInput), Time.deltaTime * SpeedChangeRate);
+                _speed = Mathf.Round(_speed * 1000f) / 1000f;
+
+                // Tạo hướng chỉ theo trục y
+                Vector3 climbDirection = Vector3.up * verticalInput;
+
+                // Di chuyển nhân vật
+                _controller.Move(climbDirection.normalized * (_speed * Time.deltaTime));
+
+                // Không đi ngang khi leo
+                return;
+            }
+
+            // --- Phần di chuyển bình thường (không leo) ---
+            float normalTargetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+
             if (_input.move == Vector2.zero)
-                targetSpeed = 0.0f;
+                normalTargetSpeed = 0.0f;
 
-            // a reference to the players current horizontal velocity
             float currentHorizontalSpeed = new Vector3(
                 _controller.velocity.x,
                 0.0f,
@@ -214,44 +232,31 @@ namespace StarterAssets
             float speedOffset = 0.1f;
             float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
-            // accelerate or decelerate to target speed
-            if (
-                currentHorizontalSpeed < targetSpeed - speedOffset
-                || currentHorizontalSpeed > targetSpeed + speedOffset
-            )
+            if (currentHorizontalSpeed < normalTargetSpeed - speedOffset
+                || currentHorizontalSpeed > normalTargetSpeed + speedOffset)
             {
-                // creates curved result rather than a linear one giving a more organic speed change
-                // note T in Lerp is clamped, so we don't need to clamp our speed
                 _speed = Mathf.Lerp(
                     currentHorizontalSpeed,
-                    targetSpeed * inputMagnitude,
+                    normalTargetSpeed * inputMagnitude,
                     Time.deltaTime * SpeedChangeRate
                 );
-
-                // round speed to 3 decimal places
                 _speed = Mathf.Round(_speed * 1000f) / 1000f;
             }
             else
             {
-                _speed = targetSpeed;
+                _speed = normalTargetSpeed;
             }
 
-            // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
-            // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-            // if there is a move input rotate player when the player is moving
             if (_input.move != Vector2.zero)
             {
-                // move
-                inputDirection =
-                    transform.right * _input.move.x + transform.forward * _input.move.y;
+                inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
             }
 
-            // move the player
             _controller.Move(
                 inputDirection.normalized * (_speed * Time.deltaTime)
-                    + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime
+                + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime
             );
         }
 
@@ -297,7 +302,7 @@ namespace StarterAssets
             }
 
             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-            if (_verticalVelocity < _terminalVelocity && GetComponent<PlayerState>().isPLayerClimbing == false)
+            if (_verticalVelocity < _terminalVelocity && GetComponent<PlayerState>().isPlayerClimbing == false)
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
             }

@@ -17,6 +17,9 @@ public class Player : MonoBehaviour
     public float health = 100f;
     public float stamina = 100f;
     public float reachRange = 5f;
+    public float climbSpeed = 3.0f;
+    [Header("PlayerTempData")]
+    public float ClimableHeight;
 
     void Start()
     {

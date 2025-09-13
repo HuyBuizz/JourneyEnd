@@ -7,16 +7,17 @@ public class PlayerInteractionSystem : MonoBehaviour
     [Header("Refs")]
     [SerializeField] GameObject playerCameraRoot;
     [SerializeField] PlayerInput playerInput;
-    [SerializeField] PlayerAction playerAction;      
-    [SerializeField] PlayerState playerState;    
+    [SerializeField] PlayerAction playerAction;
+    [SerializeField] PlayerState playerState;
     [SerializeField] MultiKeyHintUI keyHintUI;
 
+
     [Header("Config")]
-    [SerializeField] LayerMask interactableMask;      
-    [SerializeField] float raycastInterval = 0.02f;   
+    [SerializeField] LayerMask interactableMask;
+    [SerializeField] float raycastInterval = 0.02f;
     [SerializeField] GameObject interactableObject;
     GameObject lastOutlinedObject;
-    Outline lastOutline;                          
+    Outline lastOutline;
     InputAction interactAction;
     float _rayTimer;
 
@@ -65,7 +66,7 @@ public class PlayerInteractionSystem : MonoBehaviour
         }
 
         HandleInteract();
-        CheckForLadder();
+        // CheckForLadder();
     }
 
     void DetectInteractableObject()
@@ -108,24 +109,23 @@ public class PlayerInteractionSystem : MonoBehaviour
         if (keyHintUI) keyHintUI.UpdateAllKeyHints();
     }
 
-    private void CheckForLadder()
-    {
-        RaycastHit hit;
-        if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, 1.0f, LayerMask.GetMask("LadderLayer")) && hit.collider.CompareTag("Ladder"))
-        {
-            playerState.isInClimbableState = true;
-        }
-        else
-        {
-            playerState.isInClimbableState = false;
-        }
-    }
+    // private void CheckForLadder()
+    // {
+    //     RaycastHit hit;
+    //     if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, 1.0f, LayerMask.GetMask("Interactable")))
+    //     {
+    //         playerState.isInClimbableState = true;
+    //     }
+    //     else
+    //     {
+    //         playerState.isInClimbableState = false;
+    //     }
+    // }
 
     void HandleInteract()
     {
         if (interactAction == null || !interactAction.triggered || !interactableObject)
             return;
-
         var it = interactableObject.GetComponent<Interactable>();
         if (!it) return;
 
@@ -133,12 +133,17 @@ public class PlayerInteractionSystem : MonoBehaviour
         switch (it.interactableType)
         {
             case Interactable.InteractableType.Takeable:
+                Debug.Log("Take");
                 playerAction.Take(interactableObject);
                 break;
             case Interactable.InteractableType.Storage:
+                Debug.Log("Store");
                 playerAction.StoreItem(interactableObject);
                 break;
             case Interactable.InteractableType.Climb:
+                Debug.Log("Climb");
+                playerAction.Climb(interactableObject);
+                break;
             default:
                 // Debug.Log($"Interactable type not handled: {it.interactableType}");
                 break;

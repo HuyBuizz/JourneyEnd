@@ -7,13 +7,13 @@ public class PlayerState : MonoBehaviour
     [SerializeField]
     GameObject playerObject;
     public MultiKeyHintUI keyHintUI;
-    public GameObject playerCameraRoot;
+    private GameObject playerCameraRoot;
     public Vector3 playerLookDirection;
     [Header("Player State")]
     public GameObject onHoldingItem;
 
     public bool isInClimbableState = false;
-    public bool isPLayerClimbing = false;
+    public bool isPlayerClimbing = false;
 
 
     void Start()
@@ -37,6 +37,15 @@ public class PlayerState : MonoBehaviour
         else
         {
             MultiKeyHintUI.isHoldingItem = false;
+        }
+        ResetTempData();
+    }
+
+    public void ResetTempData()
+    {
+        if (isPlayerClimbing == false)
+        {
+            GetComponent<Player>().ClimableHeight = 0f;
         }
     }
 }

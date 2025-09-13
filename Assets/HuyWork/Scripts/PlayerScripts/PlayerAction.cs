@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerAction : MonoBehaviour
 {
     private PlayerState playerState;
+    private Player player;
     private PlayerInventorySystem inventory;
 
     [SerializeField]
@@ -19,6 +20,16 @@ public class PlayerAction : MonoBehaviour
     {
         if (playerInput == null)
             playerInput = GetComponent<PlayerInput>();
+        
+        if (playerState == null)
+            playerState = GetComponent<PlayerState>();
+
+        if (player == null)
+            player = GetComponent<Player>();
+
+        if (inventory == null)
+            inventory = GetComponent<PlayerInventorySystem>();
+
 
         // Lấy action "Drop" từ PlayerInput
         interactAction = playerInput.actions["Drop"];
@@ -34,17 +45,6 @@ public class PlayerAction : MonoBehaviour
     {
         if (interactAction != null)
             interactAction.Disable();
-    }
-
-    void Start()
-    {
-        playerState = GetComponent<PlayerState>();
-        inventory = GetComponent<PlayerInventorySystem>();
-
-        if (playerState == null)
-            Debug.LogError("PlayerState component not found!");
-        if (inventory == null)
-            Debug.LogError("PlayerInventorySystem component not found!");
     }
 
     void Update()
@@ -226,5 +226,16 @@ public class PlayerAction : MonoBehaviour
             SetupItemForWorld(currentItem);
         }
         playerState.onHoldingItem = null;
+    }
+
+    public void Climb(GameObject ClimableObject)
+    {
+        // Adjust player position slightly upwards to avoid Grounded state
+        if (!playerState.isPlayerClimbing)
+        {
+            transform.position = new Vector3(transform.position.x, transform.position.y + 0.2f, transform.position.z);
+            playerState.isPlayerClimbing = true;
+            player.ClimableHeight = ClimableObject.GetComponent<Collider>().bounds.size.y;
+        }
     }
 }

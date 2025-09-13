@@ -12,6 +12,8 @@ namespace StarterAssets
         public Vector2 look;
         public bool jump;
         public bool sprint;
+        public bool crouch;
+        public bool crawl;
         public bool leftMouseHold;
         public bool rightMouseHold;
 
@@ -46,6 +48,16 @@ namespace StarterAssets
             sprint = value.isPressed;
         }
 
+        public void OnCrouch(InputValue value)
+        {
+            crouch = value.isPressed;
+        }
+
+        public void OnCrawl(InputValue value)
+        {
+            crawl = value.isPressed;
+        }
+
         public void OnLeftMouseHold(InputValue value)
         {
             leftMouseHold = value.isPressed;
@@ -69,6 +81,16 @@ namespace StarterAssets
         public void JumpInput(bool newJumpState)
         {
             jump = newJumpState;
+        }
+
+        public void CrouchInput(bool newCrouchState)
+        {
+            crouch = newCrouchState;
+        }
+
+        public void CrawlInput(bool newCrawlState)
+        {
+            crawl = newCrawlState;
         }
 
         public void SprintInput(bool newSprintState)
