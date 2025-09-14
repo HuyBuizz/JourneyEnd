@@ -157,6 +157,11 @@ namespace StarterAssets
                 GroundLayers,
                 QueryTriggerInteraction.Ignore
             );
+
+            if (Grounded)
+            {
+                GetComponent<PlayerState>().isPlayerClimbing = false;
+            }
         }
 
         private void CameraRotation()
@@ -196,6 +201,12 @@ namespace StarterAssets
             // Nếu đang leo, chỉ cho phép đi lên hoặc xuống
             if (playerState.isPlayerClimbing)
             {
+                if (transform.position.y >= GetComponent<Player>().ClimableHeight + 1f)
+                {
+                    playerState.isPlayerClimbing = false;
+                    return;
+                }
+
                 float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
                 // Nếu không có input lên/xuống thì tốc độ bằng 0
@@ -262,49 +273,67 @@ namespace StarterAssets
 
         private void JumpAndGravity()
         {
+            var playerState = GetComponent<PlayerState>();
+
+            // Nếu đang grounded
             if (Grounded)
             {
-                // reset the fall timeout timer
+                // reset fall timeout
                 _fallTimeoutDelta = FallTimeout;
 
-                // stop our velocity dropping infinitely when grounded
+                // ngăn velocity âm khi đứng trên mặt đất
                 if (_verticalVelocity < 0.0f)
-                {
                     _verticalVelocity = -2f;
-                }
 
                 // Jump
                 if (_input.jump && _jumpTimeoutDelta <= 0.0f)
                 {
-                    // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+                    playerState.isPlayerClimbing = false; // nếu đang leo, thoát leo khi nhảy
                 }
 
-                // jump timeout
-                if (_jumpTimeoutDelta >= 0.0f)
-                {
+                // giảm jump timeout
+                if (_jumpTimeoutDelta > 0.0f)
                     _jumpTimeoutDelta -= Time.deltaTime;
-                }
             }
-            else
+            else // đang không grounded
             {
-                // reset the jump timeout timer
-                _jumpTimeoutDelta = JumpTimeout;
-
-                // fall timeout
-                if (_fallTimeoutDelta >= 0.0f)
+                // nếu đang leo
+                if (playerState.isPlayerClimbing)
                 {
-                    _fallTimeoutDelta -= Time.deltaTime;
+                    // nhảy khi leo
+                    if (_input.jump)
+                    {
+                        playerState.isPlayerClimbing = false;
+                        // cho một lực nhảy nhẹ theo hướng tường (tuỳ gameplay)
+                        _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity * 0.8f);
+                        _input.jump = false;
+                    }
+                    else
+                    {
+                        // khi leo mà không nhảy, Gravity không ảnh hưởng (giữ player trên tường)
+                        _verticalVelocity = 0f;
+                    }
+
+                    // khi leo, không tính fall timeout
+                    _fallTimeoutDelta = FallTimeout;
                 }
+                else // đang rơi tự do
+                {
+                    // reset jump timeout
+                    _jumpTimeoutDelta = JumpTimeout;
 
-                // if we are not grounded, do not jump
-                _input.jump = false;
-            }
+                    // giảm fall timeout
+                    if (_fallTimeoutDelta > 0.0f)
+                        _fallTimeoutDelta -= Time.deltaTime;
 
-            // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-            if (_verticalVelocity < _terminalVelocity && GetComponent<PlayerState>().isPlayerClimbing == false)
-            {
-                _verticalVelocity += Gravity * Time.deltaTime;
+                    // không cho nhảy nếu không grounded
+                    _input.jump = false;
+
+                    // áp dụng gravity
+                    if (_verticalVelocity < _terminalVelocity)
+                        _verticalVelocity += Gravity * Time.deltaTime;
+                }
             }
         }
 

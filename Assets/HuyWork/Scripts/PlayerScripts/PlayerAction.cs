@@ -233,9 +233,9 @@ public class PlayerAction : MonoBehaviour
         // Adjust player position slightly upwards to avoid Grounded state
         if (!playerState.isPlayerClimbing)
         {
-            transform.position = new Vector3(transform.position.x, transform.position.y + 0.2f, transform.position.z);
+            transform.position = new Vector3(transform.position.x, transform.position.y + 0.3f, transform.position.z);
             playerState.isPlayerClimbing = true;
-            player.ClimableHeight = ClimableObject.GetComponent<Collider>().bounds.size.y;
+            player.ClimableHeight = ClimableObject.GetComponent<Collider>().bounds.max.y;
         }
     }
 }
