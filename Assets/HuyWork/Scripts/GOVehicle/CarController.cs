@@ -11,6 +11,8 @@ public class CarController : MonoBehaviour
     // Steering & motor
     private float currentSteerAngle, currentBrakeForce;
 
+    [SerializeField] private GameObject driver;
+
     [Header("Car Settings")]
     [SerializeField] private float motorForce = 1500f;
     [SerializeField] private float brakeForce = 3000f;
@@ -61,6 +63,7 @@ public class CarController : MonoBehaviour
 
     private void GetInput()
     {
+        if (driver == null) return;
         horizontalInput = Input.GetAxis("Horizontal"); // A/D hoặc trái/phải
         verticalInput = Input.GetAxis("Vertical");     // W/S hoặc lên/xuống
 

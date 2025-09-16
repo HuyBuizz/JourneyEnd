@@ -5,13 +5,17 @@ using Unity.Burst;
 using Unity.Mathematics;
 using UnityEngine;
 
-// Nếu muốn dùng trực tiếp Size0, Size3x3... thì dùng:
-// using static ComboPrefabSize;
-
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial struct SpawnComboSystem : ISystem
 {
+    public struct ComboSpawnData
+    {
+        public Entity prefab;
+        public int amount;
+        public ComboPrefabSize size;
+    }
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -45,16 +49,19 @@ public partial struct SpawnComboSystem : ISystem
 
         var rng = new Unity.Mathematics.Random((uint)UnityEngine.Random.Range(1, int.MaxValue));
 
-        var comboList = new (Entity prefab, int amount, ComboPrefabSize size)[]
-        {
-            (singleton.prefab0, Mathf.CeilToInt(singleton.amountPref0), ComboPrefabSize.Size0),
-            (singleton.prefab3x3, Mathf.CeilToInt(singleton.amountPref3x3), ComboPrefabSize.Size3x3),
-            (singleton.prefab5x5, Mathf.CeilToInt(singleton.amountPref5x5), ComboPrefabSize.Size5x5),
-            (singleton.prefab7x7, Mathf.CeilToInt(singleton.amountPref7x7), ComboPrefabSize.Size7x7)
-        };
+        // Dùng NativeArray thay cho ValueTuple[]
+        var comboList = new NativeArray<ComboSpawnData>(4, Allocator.Temp);
+        comboList[0] = new ComboSpawnData { prefab = singleton.prefab0, amount = Mathf.CeilToInt(singleton.amountPref0), size = ComboPrefabSize.Size0 };
+        comboList[1] = new ComboSpawnData { prefab = singleton.prefab3x3, amount = Mathf.CeilToInt(singleton.amountPref3x3), size = ComboPrefabSize.Size3x3 };
+        comboList[2] = new ComboSpawnData { prefab = singleton.prefab5x5, amount = Mathf.CeilToInt(singleton.amountPref5x5), size = ComboPrefabSize.Size5x5 };
+        comboList[3] = new ComboSpawnData { prefab = singleton.prefab7x7, amount = Mathf.CeilToInt(singleton.amountPref7x7), size = ComboPrefabSize.Size7x7 };
 
-        foreach (var (prefab, amount, size) in comboList)
+        for (int i = 0; i < comboList.Length; i++)
         {
+            var prefab = comboList[i].prefab;
+            var amount = comboList[i].amount;
+            var size = comboList[i].size;
+
             if (prefab == Entity.Null || amount <= 0) continue;
 
             int placedCount = 0;
@@ -115,9 +122,9 @@ public partial struct SpawnComboSystem : ISystem
 
         spawnEntities.Dispose();
         spawnTransforms.Dispose();
+        comboList.Dispose();
     }
 
-    // Kiểm tra cả vùng xung quanh candidate
     private bool CheckSpaceAvailable(ref SystemState state, LocalTransform centerTransform, int halfSize,
         NativeArray<Entity> spawnEntities, NativeArray<LocalTransform> spawnTransforms)
     {
@@ -134,7 +141,6 @@ public partial struct SpawnComboSystem : ISystem
 
             if (dx <= halfSize && dz <= halfSize)
             {
-                // Nếu một điểm bị chiếm → vùng không hợp lệ
                 if (SystemAPI.IsComponentEnabled<SpawnPointOccupied>(other))
                     return false;
 
@@ -142,11 +148,9 @@ public partial struct SpawnComboSystem : ISystem
             }
         }
 
-        // Kiểm tra vùng có đủ điểm chưa
         return availablePoints == requiredPoints;
     }
 
-    // Đánh dấu toàn bộ vùng là occupied
     private void MarkOccupied(ref SystemState state, LocalTransform centerTransform, int halfSize,
         NativeArray<Entity> spawnEntities, NativeArray<LocalTransform> spawnTransforms)
     {
