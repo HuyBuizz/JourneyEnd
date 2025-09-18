@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 
 [System.Serializable]
@@ -18,6 +19,15 @@ public enum MissionStatus
     Failed
 }
 
+[System.Serializable]
+public enum PlayerRole
+{
+    None,
+    Firefighter,
+    Medic,
+    Engineer,
+    Commander
+}
 
 [System.Serializable]
 public class Mission
@@ -27,9 +37,13 @@ public class Mission
     public string description;
     public MissionType type;
     public MissionStatus status = MissionStatus.Locked;
+    public PlayerRole assignedRole = PlayerRole.Firefighter;
+    [SerializeReference]
     public List<MissionStep> steps = new List<MissionStep>();
     public int currentStepIndex = 0;
+
     // Quan hệ cha - con (Main chứa các Side con)
+    [SerializeReference]
     public List<Mission> children = new List<Mission>();
     public string parentId; // null nếu là root
 
@@ -46,6 +60,7 @@ public class Mission
     public List<string> requiredCompletedMissions = new List<string>();
 
 
+
     public MissionStep GetCurrentStep()
     {
         if (status != MissionStatus.Active) return null;
@@ -53,19 +68,46 @@ public class Mission
         return steps[currentStepIndex];
     }
 
+    public void InitializeSteps()
+    {
+        if (steps == null || steps.Count == 0) return;
+
+        currentStepIndex = 0;
+
+        for (int i = 0; i < steps.Count; i++)
+        {
+            steps[i].isCompleted = false;
+            steps[i].isActive = (i == 0); // chỉ mở step 1
+        }
+    }
+
 
     public void CompleteCurrentStep()
     {
-        if (currentStepIndex < steps.Count)
+        if (status != MissionStatus.Active) return;
+
+        var step = GetCurrentStep();
+        if (step != null)
         {
-            if (!steps[currentStepIndex].isCompleted)
-                steps[currentStepIndex].CompleteStep();
+            step.CompleteStep();
 
-
+            // Sang step tiếp theo
             currentStepIndex++;
-            TryMarkCompleted();
+
+            if (currentStepIndex < steps.Count)
+            {
+                steps[currentStepIndex].isActive = true;
+                Debug.Log($"[Mission] Step {steps[currentStepIndex].id} is now active");
+            }
+            else
+            {
+                status = MissionStatus.Completed;
+                Debug.Log($"[Mission] Mission {id} completed!");
+            }
         }
     }
+
+
     public bool StepsCompleted()
     {
         return currentStepIndex >= steps.Count;

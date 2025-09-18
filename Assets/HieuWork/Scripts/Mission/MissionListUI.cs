@@ -65,14 +65,23 @@ public class MissionListUI : MonoBehaviour
 
     private void RefreshMissionList()
     {
-        if (MissionManager.Instance?.allMissions == null) return;
+        if (MissionManager.Instance == null) return;
+
+        var playerMissions = MissionManager.Instance.GetMissionsForCurrentPlayer();
+        if (playerMissions == null || playerMissions.Count == 0)
+        {
+            UpdateSectionText(mainJobsParent, "No missions available.");
+            UpdateSectionText(sideJobsParent, "");
+            UpdateSectionText(completedParent, "");
+            return;
+        }
 
         // Build mission strings for each category
         string mainMissionsText = "";
         string sideMissionsText = "";
         string completedMissionsText = "";
 
-        foreach (var mission in MissionManager.Instance.allMissions)
+        foreach (var mission in playerMissions)
         {
             string statusIcon = GetStatusIcon(mission.status);
             var sbLine = new StringBuilder();
@@ -83,15 +92,11 @@ public class MissionListUI : MonoBehaviour
 
             sbLine.Append('\n');
 
-            // Render per category
             if (mission.status == MissionStatus.Completed)
-            {
                 completedMissionsText += sbLine.ToString();
-            }
             else if (mission.type == MissionType.Main)
             {
                 mainMissionsText += sbLine.ToString();
-                // ▼ Append completed steps + current step for ACTIVE missions
                 if (mission.status == MissionStatus.Active)
                     mainMissionsText += BuildStepProgressBlock(mission);
             }
@@ -138,13 +143,12 @@ public class MissionListUI : MonoBehaviour
         TextMeshProUGUI[] textComponents = parent.GetComponentsInChildren<TextMeshProUGUI>();
         foreach (var textComp in textComponents)
         {
-            if (textComp.name.Contains("Header") ||
-                textComp.text == "MAIN JOBS" ||
-                textComp.text == "SIDE JOBS" ||
+            if (textComp.name.Contains("Header") || 
+                textComp.text == "MAIN JOBS" || 
+                textComp.text == "SIDE JOBS" || 
                 textComp.text == "COMPLETED")
                 continue;
-
-            textComp.text = content;
+            textComp.text = string.IsNullOrEmpty(content) ? "No missions available for your role." : content;
             break;
         }
     }

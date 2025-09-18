@@ -1,14 +1,14 @@
 using UnityEngine;
-
-
+    
 [System.Serializable]
 public class MissionStep
 {
     public string id;
     public string description;
     public MissionStepType type;
-    public bool isCompleted;
+    public bool isCompleted = false;
 
+    public bool isActive = false;
 
     // Các dữ liệu đặc trưng cho từng loại nhiệm vụ
     public GameObject targetNPC;
@@ -16,7 +16,7 @@ public class MissionStep
     public GameObject targetObject;
 
 
-    // Tiến độ (nếu là dạng tích lũy)
+    // Tiến độ 
     public int peopleToRescue; // ngưỡng cần cứu
     [HideInInspector] public int rescuedCount; // đã cứu
 
@@ -28,7 +28,8 @@ public class MissionStep
     public void CompleteStep()
     {
         isCompleted = true;
-        Debug.Log("✅ Hoàn thành bước: " + description);
+        isActive = false;
+        Debug.Log("Hoàn thành bước: " + description);
     }
 
 

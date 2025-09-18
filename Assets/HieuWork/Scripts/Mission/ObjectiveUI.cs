@@ -77,7 +77,7 @@ public class ObjectiveUI : MonoBehaviour
             if (progressSlider != null)
             {
                 progressSlider.value = selectedMission.GetProgress();
-                progressSlider.gameObject.SetActive(selectedMission.steps.Count > 1);
+                progressSlider.gameObject.SetActive(selectedMission.steps.Count > 0);
             }
         }
         else
