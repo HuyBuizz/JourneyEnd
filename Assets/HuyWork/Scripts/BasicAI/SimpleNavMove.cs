@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -5,6 +6,7 @@ public class SimpleNavMove : MonoBehaviour
 {
     public NavMeshAgent agent; // Kéo thả NavMeshAgent vào inspector
     public Transform target;   // Vị trí đích, có thể là 1 GameObject trên scene
+    public float stopDistance = 0.5f; // Khoảng cách để coi là đã tới đích
 
     void Start()
     {
@@ -19,13 +21,12 @@ public class SimpleNavMove : MonoBehaviour
 
     void Update()
     {
-        // Ví dụ: di chuyển tới vị trí nhấp chuột
-        if (Input.GetMouseButtonDown(0))
+        if (agent != null && target != null)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            // Kiểm tra xem agent đã gần đích chưa
+            if (!agent.pathPending && agent.remainingDistance <= stopDistance)
             {
-                MoveToTarget(hit.point);
+                OnReachDestination();
             }
         }
     }
@@ -37,5 +38,21 @@ public class SimpleNavMove : MonoBehaviour
         {
             agent.SetDestination(destination);
         }
+    }
+
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+        if (target != null)
+        {
+            MoveToTarget(target.position);
+        }
+    }
+
+    // Gọi khi agent đạt đích
+    private void OnReachDestination()
+    {
+        // Tại đây có thể thêm hiệu ứng, âm thanh, v.v...
+        Destroy(gameObject); // Destroy chính GameObject này
     }
 }
