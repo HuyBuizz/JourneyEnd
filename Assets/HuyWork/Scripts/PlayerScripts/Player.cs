@@ -8,9 +8,6 @@ public class Player : MonoBehaviour
     [SerializeField]
     GameObject playerCameraRoot;
 
-    [SerializeField]
-    GameObject crosshairObject;
-
     /// <summary>
     /// Player stats
     /// </summary>
@@ -31,33 +28,6 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PlaceCrosshair();
         playerLookDirection = playerCameraRoot.transform.forward;
-    }
-
-    void PlaceCrosshair()
-    {
-        if (crosshairObject != null && playerCameraRoot != null)
-        {
-            RaycastHit hit;
-            if (
-                Physics.Raycast(
-                    playerCameraRoot.transform.position,
-                    playerCameraRoot.transform.forward,
-                    out hit,
-                    reachRange,
-                    LayerMask.GetMask("Interactable")
-                )
-            )
-            {
-                crosshairObject.transform.position = hit.point;
-            }
-            else
-            {
-                crosshairObject.transform.position =
-                    playerCameraRoot.transform.position
-                    + playerCameraRoot.transform.forward * reachRange;
-            }
-        }
     }
 }

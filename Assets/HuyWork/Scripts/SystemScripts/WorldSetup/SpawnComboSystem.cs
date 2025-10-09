@@ -43,7 +43,6 @@ public partial struct SpawnComboSystem : ISystem
         {
             spawnEntities.Dispose();
             spawnTransforms.Dispose();
-            Debug.LogWarning("Không có spawn point nào.");
             return;
         }
 

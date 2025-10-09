@@ -1,23 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!1045 &1
-EditorBuildSettings:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
-    path: Assets/HieuWork/Scenes/LoadingScreen/Menu.unity
-    guid: 2f185485cba1e034ab9b767d5f626c7d
-  - enabled: 1
-    path: Assets/HieuWork/Scenes/LoadingScreen/Level1.unity
-    guid: 830fd64ff8df61a4d9fc3d1153f8ed30
-  - enabled: 1
-    path: Assets/HieuWork/Scenes/LoadingScreen/Loading.unity
-    guid: 1eff1b21a1556194aa164b39f141c7ac
-  m_configObjects:
-    com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7, type: 2}
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  m_UseUCBPForAssetBundles: 0
+version https://git-lfs.github.com/spec/v1
+oid sha256:6df108c6d7e448138ec7bcb1135086d911b8ccf524615a6b0947d46d47825aad
+size 945

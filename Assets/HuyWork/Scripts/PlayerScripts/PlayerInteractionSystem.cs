@@ -109,19 +109,6 @@ public class PlayerInteractionSystem : MonoBehaviour
         if (keyHintUI) keyHintUI.UpdateAllKeyHints();
     }
 
-    // private void CheckForLadder()
-    // {
-    //     RaycastHit hit;
-    //     if (Physics.Raycast(playerCameraRoot.transform.position, playerCameraRoot.transform.forward, out hit, 1.0f, LayerMask.GetMask("Interactable")))
-    //     {
-    //         playerState.isInClimbableState = true;
-    //     }
-    //     else
-    //     {
-    //         playerState.isInClimbableState = false;
-    //     }
-    // }
-
     void HandleInteract()
     {
         if (interactAction == null || !interactAction.triggered || !interactableObject)

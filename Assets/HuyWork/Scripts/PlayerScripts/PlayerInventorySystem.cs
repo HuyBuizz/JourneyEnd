@@ -50,14 +50,6 @@ public class PlayerInventorySystem : MonoBehaviour
         }
     }
 
-    // public void AddToPlayerInventory(GameObject item)
-    // {
-    //     if (item != null && !playerItems.Contains(item))
-    //     {
-    //         playerItems.Add(item);
-    //     }
-    // }
-
     public bool AddToPlayerInventory(GameObject item)
     {
         if (item != null && !playerItems.Contains(item) && playerItems.Count < maxInventorySize)
