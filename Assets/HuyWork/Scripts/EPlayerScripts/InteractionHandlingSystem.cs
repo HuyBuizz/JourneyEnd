@@ -18,7 +18,7 @@ public struct InteractionCooldown : IComponentData
     public float Seconds;
 }
 
-[BurstCompile]
+// [BurstCompile]
 public partial struct InteractionHandlingSystem : ISystem
 {
     private EntityQuery _missingLatchQ;
@@ -28,7 +28,7 @@ public partial struct InteractionHandlingSystem : ISystem
     private ComponentLookup<LocalTransform>    _ltLookupRO;
     private ComponentLookup<InteractionCooldown> _cooldownLookupRO; // NEW
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate(
@@ -49,7 +49,7 @@ public partial struct InteractionHandlingSystem : ISystem
         _cooldownLookupRO      = state.GetComponentLookup<InteractionCooldown>(true); // NEW
     }
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         float dt = SystemAPI.Time.DeltaTime;

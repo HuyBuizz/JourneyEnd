@@ -37,7 +37,7 @@ public partial class WaitForCommandNodeAction : Unity.Behavior.Action
         if (unit == null) return Status.Failure;
         if (!unit.isSelected) return Status.Failure;
 
-        commander.OnCommandIssued += OnIssued;
+        // commander.OnCommandIssued += OnIssued;
 
         return Status.Running;
     }
@@ -86,7 +86,7 @@ public partial class WaitForCommandNodeAction : Unity.Behavior.Action
 
     protected override void OnEnd()
     {
-        if (commander != null)
-            commander.OnCommandIssued -= OnIssued;
+        // if (commander != null)
+            // commander.OnCommandIssued -= OnIssued;
     }
 }

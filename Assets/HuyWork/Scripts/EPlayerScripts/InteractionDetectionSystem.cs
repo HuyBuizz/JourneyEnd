@@ -21,13 +21,13 @@ public struct InteractionConfig : IComponentData
 [UpdateAfter(typeof(Unity.Physics.Systems.PhysicsSystemGroup))]
 public partial struct InteractionDetectionSystem : ISystem
 {
-    [BurstCompile]
+    // [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<PhysicsWorldSingleton>();
     }
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>().PhysicsWorld;

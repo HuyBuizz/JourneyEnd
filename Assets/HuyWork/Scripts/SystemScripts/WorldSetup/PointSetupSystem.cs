@@ -18,7 +18,7 @@ public partial struct PointSetupSystem : ISystem
         state.RequireForUpdate<PhysicsWorldSingleton>();
     }
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         if (SystemAPI.HasSingleton<PointSetupSystemDone>()) return;

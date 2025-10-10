@@ -11,7 +11,7 @@ public struct CrawlPressLatch : IComponentData
 
 public struct CrawlingActive : IComponentData, IEnableableComponent {}
 
-[BurstCompile]
+// [BurstCompile]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct CrawlToggleSystem : ISystem
 {
@@ -33,7 +33,7 @@ public partial struct CrawlToggleSystem : ISystem
             .Build();
     }
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         float dt = SystemAPI.Time.DeltaTime;

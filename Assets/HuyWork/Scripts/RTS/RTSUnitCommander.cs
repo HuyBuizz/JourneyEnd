@@ -1,191 +1,82 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using System;
-using UnityEngine.InputSystem;
-using Unity.Behavior;
-using UnityEditor.Rendering.Canvas.ShaderGraph;
 
-[RequireComponent(typeof(SelectionManager))]
 public class RTSUnitCommander : MonoBehaviour
 {
+    [Header("Masks")]
+    [SerializeField] private LayerMask groundMask = ~0;        // layer mặt đất
+    [SerializeField] private LayerMask interactableMask = ~0;  // layer vật thể tương tác
+
+    [Header("Pick & Move")]
+    [SerializeField] private float rayMaxDistance = 1500f;
+    [SerializeField] private float clickEps = 0.01f;
+
     private Camera cam;
+    private Vector3 _lastRightClickPos = new Vector3(float.PositiveInfinity, 0, 0);
+    private bool _hasPrevClick;
+    private GameObject _lastTarget;
 
-    // Sentinel + cờ để lọc khoảng cách click
-    private Vector3 oldRightClickPosition = new Vector3(float.PositiveInfinity, 0, 0);
-    private bool hasPrevClick = false;
+    // Sự kiện để CommandHandler bắt
+    public event Action<Vector3> OnMoveCommandIssued;
+    public event Action<GameObject> OnPickupCommandIssued;
+    public event Action OnForceStop;
 
-    public GameObject hitTargetClicked = null;
-    private GameObject lastIssuedTarget = null; // để tránh phát lại lệnh y hệt
-
-    private SelectionManager selectionManager;
-
-    [Header("Command")]
-    [SerializeField] private string command = "None";
-    private string oldCommand = "None";
-
-    // Sửa typo: unitContainer (vẫn serialize tiếp nếu đổi tên field)
-    [SerializeField] private GameObject unitContainer;
-
-    [SerializeField] private KeyCode hybridKey;
-
-    [Header("Layer Mask")]
-    [SerializeField] private LayerMask groundMask = ~0;
-    [SerializeField] private LayerMask interactableMask = ~0;
-
-    // Ngưỡng so khoảng cách click
-    private const float CLICK_EPS = 0.01f;
-    private const float CLICK_EPS_SQR = CLICK_EPS * CLICK_EPS;
-
-    /// <summary>
-    /// Phát lệnh + vị trí đích.
-    /// </summary>
-    public event Action<string, Vector3, GameObject> OnCommandIssued;
-    public event Action<string, GameObject> OnTakeCommandIssued;
-    public event System.Action OnForceStop;
-
-    private void Start()
+    private void Awake()
     {
         cam = Camera.main;
-        if (cam == null) Debug.LogWarning("[RTSUnitCommander] Camera.main is null.");
-
-        selectionManager = GetComponent<SelectionManager>();
-        if (selectionManager == null) Debug.LogWarning("[RTSUnitCommander] SelectionManager component not found.");
-
-        // Tìm theo tên (tuỳ dự án có thể bỏ hoặc serialized thẳng trong Inspector)
-        unitContainer = GameObject.Find("UnitContainer");
-        if (unitContainer == null) Debug.LogWarning("[RTSUnitCommander] UnitContainer GameObject not found in scene.");
+        if (!cam) Debug.LogWarning("[RTSUnitCommander] Camera.main is null.");
     }
 
     private void Update()
     {
-        if (cam == null || selectionManager == null) return;
+        if (!cam) return;
 
-        // Cập nhật lệnh theo phím số
-        CommandCased();
-
-        // Bỏ qua nếu đang trên UI (giữ nguyên cách cũ của bạn)
+        // Bỏ qua nếu trỏ chuột đang trên UI
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
-        // Right click?
-        bool rightClickDown =
-            Input.GetMouseButtonDown(1) ||
-            (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame);
+        // Chuột phải?
+        if (!Input.GetMouseButtonDown(1))
+            return;
 
-        if (!rightClickDown) return;
-
-        hitTargetClicked = null;
-
+        // Ray từ màn hình
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 1500f, groundMask, QueryTriggerInteraction.Ignore))
+
+        // 1) Ưu tiên xem có đụng vật thể tương tác không
+        GameObject hitTarget = null;
+        if (Physics.Raycast(ray, out RaycastHit hitTargetRH, rayMaxDistance, interactableMask, QueryTriggerInteraction.Ignore))
         {
-            // Lọc click trùng vị trí gần như nhau
-            if (hasPrevClick)
-            {
-                if ((hit.point - oldRightClickPosition).sqrMagnitude <= CLICK_EPS_SQR)
-                    return;
-            }
-
-            // Gán target
-            if (Physics.Raycast(ray, out RaycastHit hitTarget, 1500f, interactableMask, QueryTriggerInteraction.Ignore))
-            {
-                if (hitTarget.collider != null)
-                {
-                    hitTargetClicked = hitTarget.collider.gameObject;
-
-                }
-                else
-                {
-                    hitTargetClicked = null;
-                }
-            }
-
-
-            if (hitTargetClicked != null)
-            {
-                command = "Take";
-            }
-            else
-            {
-                command = "Move";
-            }
-            // Nếu chưa chọn command cụ thể, mặc định là Move
-
-            // Chỉ reset BehaviorGraphAgent nếu lệnh/tham số thực sự đổi
-            bool commandChanged = command != oldCommand;
-            bool targetChanged = hitTargetClicked != lastIssuedTarget;
-            bool positionChangedEnough = !hasPrevClick || (hit.point - oldRightClickPosition).sqrMagnitude > CLICK_EPS_SQR;
-
-            if (commandChanged || targetChanged || positionChangedEnough)
-            {
-                foreach (GameObject unit in selectionManager.SelectedUnits)
-                {
-                    if (!unit) continue;
-                    if (unit.TryGetComponent<BehaviorGraphAgent>(out var agent))
-                    {
-                        // Nếu SDK có API reset riêng thì dùng thay cho toggle enable
-                        agent.enabled = false;
-                        agent.enabled = true;
-                    }
-                }
-
-                Debug.Log($"[RTSUnitCommander] Issue '{command}' to pos {hit.point} target={(hitTargetClicked ? hitTargetClicked.name : "null")}");
-
-                // Phát lệnh
-                OnForceStop?.Invoke();
-                StartCoroutine(EmitCommandNextFrame(command, hit.point, hitTargetClicked));
-
-                // Cập nhật “trạng thái trước đó”
-                oldRightClickPosition = hit.point;
-                hasPrevClick = true;
-                oldCommand = command;
-                lastIssuedTarget = hitTargetClicked;
-            }
-            else
-            {
-                // Bỏ log nếu không cần spam
-                // Debug.Log("[RTSUnitCommander] Ignored duplicate command/params.");
-            }
+            if (hitTargetRH.collider) hitTarget = hitTargetRH.collider.gameObject;
         }
-    }
 
-    private void CommandCased()
-    {
-        if (selectionManager.SelectedUnits.Count == 0) return;
+        // 2) Bắt buộc phải có hit mặt đất để lấy vị trí đích
+        if (!Physics.Raycast(ray, out RaycastHit hitGround, rayMaxDistance, groundMask, QueryTriggerInteraction.Ignore))
+            return;
 
-        string newCommand = "None";
+        Vector3 pos = hitGround.point;
 
-        // Hàng số trên: Alpha1..3
-        if (Input.GetKeyDown(KeyCode.Alpha1)) newCommand = "Attack";
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) newCommand = "Rescue";
-        else if (Input.GetKeyDown(KeyCode.Alpha3)) newCommand = "Spray";
+        // Lọc click trùng
+        float epsSqr = clickEps * clickEps;
+        bool positionChanged = !_hasPrevClick || (pos - _lastRightClickPos).sqrMagnitude > epsSqr;
+        bool targetChanged = hitTarget != _lastTarget;
 
-        // Tùy chọn: hỗ trợ Keypad1..3
-        if (Input.GetKeyDown(KeyCode.Keypad1)) newCommand = "Attack";
-        else if (Input.GetKeyDown(KeyCode.Keypad2)) newCommand = "Rescue";
-        else if (Input.GetKeyDown(KeyCode.Keypad3)) newCommand = "Spray";
+        if (!positionChanged && !targetChanged)
+            return;
 
-        // Nếu không bấm phím mới, giữ nguyên lệnh cũ
-        if (newCommand == "None") return;
+        // Phát sự kiện
+        OnForceStop?.Invoke(); // cho unit dừng hành động cũ
 
-        // Nếu bấm lại cùng một phím -> toggle về None
-        if (newCommand == oldCommand)
-        {
-            command = "None";
-            oldCommand = "None";
-        }
+        if (hitTarget != null)
+            OnPickupCommandIssued?.Invoke(hitTarget); // hoặc Attack/Interact tuỳ game
         else
-        {
-            command = newCommand;
-            oldCommand = newCommand;
-        }
-    }
+            OnMoveCommandIssued?.Invoke(pos);
 
-    private System.Collections.IEnumerator EmitCommandNextFrame(string cmd, Vector3 pos, GameObject target)
-    {
-        yield return null;
-        OnCommandIssued?.Invoke(cmd, pos, target);
-    }
+        // Cập nhật trạng thái trước
+        _lastRightClickPos = pos;
+        _lastTarget = hitTarget;
+        _hasPrevClick = true;
 
-    private void GetHybridKey() { }
+        Debug.DrawRay(ray.origin, ray.direction * 10f, Color.yellow, 0.2f);
+    }
 }

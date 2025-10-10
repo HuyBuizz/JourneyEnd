@@ -79,10 +79,21 @@ public partial class MoveToTargetAction : Action
         }
 
         if (agent.pathPending || agent.remainingDistance > agent.stoppingDistance)
+        {
             return Status.Running;
+        }
+
+        foreach (var unit in commander.GetComponent<SelectionManager>().SelectedUnits)
+        {
+            if (unit.GetComponent<UnitInventorySys>().targetItem == null)
+            {
+                Debug.Log("No target");
+            }
+        }
 
         return Status.Success;
     }
+
 
     protected override void OnEnd()
     {

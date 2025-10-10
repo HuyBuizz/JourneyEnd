@@ -6,21 +6,18 @@ using Unity.Transforms;
 
 public partial struct FlamePointNeighborBuildSystem : ISystem
 {
-    // Cache query ở cấp system (struct field)
     private EntityQuery _q;
 
-    // KHÔNG Burst OnCreate để thoải mái tạo query (tránh BC1028)
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<PointSetupSystemDone>();
 
-        // Build query 1 lần
         _q = SystemAPI.QueryBuilder()
             .WithAll<FlamePoint, LocalTransform, FlameNeighborSettings, Neighbor>()
             .Build();
     }
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         if (SystemAPI.HasSingleton<FlamePointNeighborBuildSystemDone>()) return;
